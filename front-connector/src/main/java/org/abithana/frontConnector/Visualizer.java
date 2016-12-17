@@ -3,11 +3,14 @@ package org.abithana.frontConnector;
 import org.abithana.ds.CrimeDataStore;
 import org.abithana.ds.DataStore;
 import org.abithana.ds.PreprocessedCrimeDataStore;
-import org.abithana.prediction.RandomForestCrimeClassifierImpl;
+import org.abithana.prediction.MultilayerPerceptronCrimeClassifier;
+import org.abithana.prediction.NaiveBaysianCrimeClassifier;
+import org.abithana.prediction.RandomForestCrimeClassifier;
 import org.abithana.preprocessor.facade.PreprocessorFacade;
 import org.abithana.stat.facade.StatFacade;
 import org.abithana.statBeans.CordinateBean;
 import org.abithana.statBeans.HistogramBean;
+import org.abithana.utill.Config;
 import org.abithana.utill.Converter;
 import org.apache.spark.sql.DataFrame;
 
@@ -56,11 +59,18 @@ public class Visualizer  implements Serializable{
 
     public void predict(){
 
-        String[] featureCol = {"dayOfWeek", "pdDistrict","time", "x", "y"};
+        String[] featureCol = {"dayOfWeek", "pdDistrict","time","year"};
         String label = "category";
-        RandomForestCrimeClassifierImpl rf=new RandomForestCrimeClassifierImpl(featureCol,label);
+        int[] layers = new int[]{featureCol.length,500,39};
+        MultilayerPerceptronCrimeClassifier rf=new MultilayerPerceptronCrimeClassifier(featureCol,label,layers,256, 1234L, 100);
         try{
-            rf.evaluateModel(preProcesedDataStore.getDataFrame(),0.8);
+            Config instance=Config.getInstance();
+            DataFrame df=instance.getSqlContext().read()
+                    .format("com.databricks.spark.csv")
+                    .option("header","true")
+                    .option("inferSchema","true")
+                    .load("D:\\FYP\\test.csv");
+            rf.train_pipelineModel(preProcesedDataStore.getDataFrame(), df, 0.8);
         }catch (Exception e){
             e.printStackTrace();
         }

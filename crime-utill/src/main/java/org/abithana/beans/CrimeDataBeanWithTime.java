@@ -19,8 +19,8 @@ public class CrimeDataBeanWithTime implements Serializable {
     public CrimeDataBeanWithTime(int year,int time, String category, String dayOfWeek, String pdDistrict,String resolution, double x, double y) {
         this.year=year;
         this.Time =time;
-        this.DayOfWeek = dayOfWeek;
         this.Category = category;
+        this.DayOfWeek = dayOfWeek;
         this.PdDistrict = pdDistrict;
         this.Resolution=resolution;
         this.X = x;

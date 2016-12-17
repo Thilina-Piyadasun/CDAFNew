@@ -1,5 +1,6 @@
 package org.abithana.prediction;
 
+import org.abithana.preprocessor.facade.PreprocessorFacade;
 import org.abithana.utill.CrimeUtil;
 import org.apache.spark.ml.feature.QuantileDiscretizer;
 import org.apache.spark.ml.feature.StandardScaler;
@@ -8,8 +9,11 @@ import org.apache.spark.ml.feature.VectorAssembler;
 import org.apache.spark.sql.DataFrame;
 import scala.Tuple2;
 
+import javax.xml.bind.SchemaOutputResolver;
 import javax.xml.crypto.Data;
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by Thilina on 8/12/2016.
@@ -19,6 +23,7 @@ public class MLDataParser implements Serializable{
 
     //preprocessed dataframe.
     //must set methods to set dataframe after preprocess
+    private PreprocessorFacade preprocessorFacade=new PreprocessorFacade();
 
     public DataFrame getFeaturesFrame(DataFrame df,String[] inputColumns,String outputColumnName){
 
@@ -32,6 +37,8 @@ public class MLDataParser implements Serializable{
                 .setInputCols(new String[]{"agencia_ID", "canal_ID", "ruta_SAK", "cliente_ID", "producto_ID"})
                 .setOutputCol("features");
             * */
+
+
             df=indexingColumns(df,inputColumns);
             VectorAssembler vectorAssembler = new VectorAssembler()
                     .setInputCols(inputColumns)
@@ -39,9 +46,9 @@ public class MLDataParser implements Serializable{
 
             DataFrame featuredDF = vectorAssembler.transform(df);
             System.out.println("=======================================");
-            System.out.println("Data frame Featured");
+            System.out.println("Data frame Featuring Completed");
             System.out.println("=======================================");
-            featuredDF.show(10);
+
 
             return featuredDF;
         }
@@ -55,6 +62,10 @@ public class MLDataParser implements Serializable{
      */
     public DataFrame indexingColumns(DataFrame df,String[] featureCols){
 
+        System.out.println("=================Indexing columns=================");
+
+        String[] copyFeatrurecol=featureCols;
+
         Tuple2<String,String>[] colTypes=df.dtypes();
 
         for(int j=0;j<featureCols.length;j++) {
@@ -64,21 +75,49 @@ public class MLDataParser implements Serializable{
                     if (featureCols[j].equals(colTypes[i]._1())) {
 
                         StringIndexer indexer2 = new StringIndexer()
-                                .setInputCol(featureCols[j])
-                                .setOutputCol(featureCols[j]+"Index");
-                        featureCols[j]=featureCols[j]+"Index";
+                                .setInputCol(copyFeatrurecol[j])
+                                .setOutputCol(copyFeatrurecol[j]+"Index");
+                        copyFeatrurecol[j]=copyFeatrurecol[j]+"Index";
                         df = indexer2.fit(df).transform(df);
                     }
                 }
             }
         }
-        df.show(6);
+
+        System.out.println("============Indexing done!!!!!===============");
+
+
         return df;
     }
 
-    public DataFrame preprocessMLData(DataFrame df){
+    /*
+       * */
+    public DataFrame preprocessTestData(DataFrame testSet){
 
+        testSet=preprocessorFacade.handelMissingValues(testSet);
+
+        List columns= Arrays.asList(testSet.columns());
+        if(columns.contains("Dates")&&(!columns.contains("Time"))) {
+            testSet=preprocessorFacade.getTimeIndexedTestDF(testSet, "Dates");
+        }
+
+        String[] dropColumns={"resolution","descript","address"};
+        for(String s: dropColumns){
+            testSet=preprocessorFacade.dropCol(testSet,s);
+        }
+        return testSet;
     }
+
+
+    public String[] removeIndexWord(String[] array){
+        for(int i=0;i<array.length;i++){
+            if(array[i].contains("Index"))
+                array[i]=array[i].substring(0,array[i].length()-5);
+        }
+        return array;
+    }
+
+
 
     /*
     *  This method can use to Standardise the data set.

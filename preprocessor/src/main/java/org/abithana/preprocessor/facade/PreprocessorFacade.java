@@ -25,6 +25,11 @@ public class PreprocessorFacade {
         return preprocessing.getTimeIndexedDF(df,columnWithTime);
     }
 
+    public DataFrame getTimeIndexedTestDF(DataFrame df,String columnWithTime){
+        System.out.println("Time and Date separation IN TEST");
+        return preprocessing.getTimeIndexedDFforTest(df,columnWithTime);
+    }
+
     public DataFrame discretizeColumn(DataFrame f1,String columnname,int partitionSize){
         System.out.println("Data disrcitization of column : "+ columnname);
         return discretizer.discretizeColumn(f1,columnname,partitionSize);

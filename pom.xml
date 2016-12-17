@@ -15,7 +15,6 @@
         <module>data-store</module>
         <module>crime-utill</module>
         <module>preprocessor</module>
-        <module>untitled</module>
         <module>prediction</module>
     </modules>
 
