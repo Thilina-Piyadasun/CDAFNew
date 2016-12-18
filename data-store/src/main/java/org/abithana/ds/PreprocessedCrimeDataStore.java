@@ -29,6 +29,7 @@ public class PreprocessedCrimeDataStore implements DataStore {
     @Override
     public DataFrame queryDataSet(String sqlQuery) {
         try{
+
             DataFrame df=sqlContext.sql(sqlQuery);
             return df;
         }
@@ -56,10 +57,6 @@ public class PreprocessedCrimeDataStore implements DataStore {
         }
     }
 
-    @Override
-    public DataFrame getPreprocessedData() {
-        return preprocessedDf;
-    }
     @Override
     public void read_file(String filename, int storage_level) {
 
@@ -100,6 +97,14 @@ public class PreprocessedCrimeDataStore implements DataStore {
             preprocessedDf.persist(StorageLevel.MEMORY_AND_DISK());
         else
             preprocessedDf.persist(StorageLevel.MEMORY_AND_DISK_SER());
+    }
+
+    public String getTableName() {
+        return prepTableName;
+    }
+
+    public void setTableName(String prepTableName) {
+        this.prepTableName = prepTableName;
     }
 
 }

@@ -20,7 +20,6 @@ public class CrimeDataStore implements DataStore, Serializable{
     private static DataFrame input;
     private static DataFrame preprocessedDf;
     private String initailtableName= "crimeData";
-    private String prepTableName="preprocessedData";
     private static CrimeDataStore crimeDataStore=new CrimeDataStore();
 
     private CrimeDataStore(){
@@ -131,10 +130,7 @@ public class CrimeDataStore implements DataStore, Serializable{
     }
 
     public String[] showColumns(String tableName){
-        if(tableName==prepTableName){
-            return preprocessedDf.columns();
-        }
-        else if(tableName==initailtableName)
+        if(tableName==initailtableName)
             return input.columns();
         else{
             return null;
@@ -150,8 +146,11 @@ public class CrimeDataStore implements DataStore, Serializable{
         cache_data(1);
     }
 
+    public String getTableName() {
+        return initailtableName;
+    }
 
-    public DataFrame getPreprocessedData(){
-        return preprocessedDf;
+    public void setTableName(String initailtableName) {
+        this.initailtableName = initailtableName;
     }
 }

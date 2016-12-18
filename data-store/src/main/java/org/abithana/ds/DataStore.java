@@ -47,5 +47,7 @@ public interface DataStore {
 
     String[] showColumns(String tableName);
 
-    DataFrame getPreprocessedData();
+    String getTableName() ;
+
+    void setTableName(String prepTableName) ;
 }

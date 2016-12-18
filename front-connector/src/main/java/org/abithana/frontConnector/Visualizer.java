@@ -82,6 +82,12 @@ public class Visualizer  implements Serializable{
             e.printStackTrace();
         }
     }
+
+
+    /*Returns preprocess data table name*/
+    public String getPreprocessTableName(){
+        return preProcesedDataStore.getTableName();
+    }
     /*
     * to execute queries from visualization
     * */
@@ -106,7 +112,7 @@ public class Visualizer  implements Serializable{
     2003 56
     * */
     public List<HistogramBean> categoryWiseData(String category){
-       DataFrame df= preProcesedDataStore.getPreprocessedData();
+       DataFrame df= preProcesedDataStore.getDataFrame();
         StatFacade statFacade=new StatFacade();
         DataFrame dataFrame=statFacade.categoryTimeData(df, category);
         return statFacade.getVisualizeList(dataFrame);
@@ -117,7 +123,7 @@ public class Visualizer  implements Serializable{
     * Data for heat ap visualization
     * */
     public List<CordinateBean> heatMapData(String[] categories){
-        DataFrame df= preProcesedDataStore.getPreprocessedData();
+        DataFrame df= preProcesedDataStore.getDataFrame();
         StatFacade statFacade=new StatFacade();
         DataFrame dataFrame=statFacade.categoryWiseCoordinates(df,categories);
         return statFacade.getCordinateList(dataFrame);
@@ -127,7 +133,7 @@ public class Visualizer  implements Serializable{
     * for a given year freaquncy of each caegory
     * */
     public List<HistogramBean> yearWiseData(int year){
-        DataFrame df= preProcesedDataStore.getPreprocessedData();
+        DataFrame df= preProcesedDataStore.getDataFrame();
         StatFacade statFacade=new StatFacade();
         DataFrame dataFrame=statFacade.yearCategoryData(df, year);
         return statFacade.getVisualizeList(dataFrame);
@@ -138,7 +144,7 @@ public class Visualizer  implements Serializable{
     * Data for time line animation
     * */
     public List<HistogramBean> timeLineAnimation(int startYear,int endYear){
-        DataFrame df= preProcesedDataStore.getPreprocessedData();
+        DataFrame df= preProcesedDataStore.getDataFrame();
         StatFacade statFacade=new StatFacade();
         DataFrame dataFrame=statFacade.categoryFrequency_givenTimeRange(df,startYear,endYear);
         return statFacade.getVisualizeList(dataFrame);
