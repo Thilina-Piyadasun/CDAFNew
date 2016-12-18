@@ -13,6 +13,7 @@ import org.abithana.statBeans.HistogramBean;
 import org.abithana.utill.Config;
 import org.abithana.utill.Converter;
 import org.apache.spark.sql.DataFrame;
+import org.apache.spark.sql.Row;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -81,17 +82,15 @@ public class Visualizer  implements Serializable{
             e.printStackTrace();
         }
     }
-
+    /*
+    * to execute queries from visualization
+    * */
     public ArrayList<ArrayList> executeQueries(String query){
         try {
             DataFrame dataFrame= initaldataStore.queryDataSet(query);
             Converter converter=new Converter();
-            /*for(ArrayList list:converter.convert(dataFrame)){
-                System.out.println(list.toString());
-            }*/
             ArrayList<ArrayList> list=converter.convert(dataFrame);
             return list;
-
         }
         catch (Exception e){
             e.printStackTrace();
@@ -99,6 +98,13 @@ public class Visualizer  implements Serializable{
         return null;
     }
 
+    /*
+    for a given category retruns the freuquency of respective crime category in each year
+    eg:
+    2001 34
+    2002 505
+    2003 56
+    * */
     public List<HistogramBean> categoryWiseData(String category){
        DataFrame df= preProcesedDataStore.getPreprocessedData();
         StatFacade statFacade=new StatFacade();
@@ -106,13 +112,20 @@ public class Visualizer  implements Serializable{
         return statFacade.getVisualizeList(dataFrame);
 
     }
+
+    /*
+    * Data for heat ap visualization
+    * */
     public List<CordinateBean> heatMapData(String[] categories){
         DataFrame df= preProcesedDataStore.getPreprocessedData();
         StatFacade statFacade=new StatFacade();
         DataFrame dataFrame=statFacade.categoryWiseCoordinates(df,categories);
-        dataFrame.show(20);
         return statFacade.getCordinateList(dataFrame);
     }
+
+    /*
+    * for a given year freaquncy of each caegory
+    * */
     public List<HistogramBean> yearWiseData(int year){
         DataFrame df= preProcesedDataStore.getPreprocessedData();
         StatFacade statFacade=new StatFacade();
@@ -121,29 +134,36 @@ public class Visualizer  implements Serializable{
 
     }
 
+    /*
+    * Data for time line animation
+    * */
     public List<HistogramBean> timeLineAnimation(int startYear,int endYear){
         DataFrame df= preProcesedDataStore.getPreprocessedData();
         StatFacade statFacade=new StatFacade();
         DataFrame dataFrame=statFacade.categoryFrequency_givenTimeRange(df,startYear,endYear);
-        dataFrame.show(20);
         return statFacade.getVisualizeList(dataFrame);
 
     }
 
-    public  ArrayList<ArrayList> getCategoories(String prepTableName){
+    /*
+    * Categories of data set after preprocessing
+    * */
+    public List<String> getCategoories(String prepTableName){
 
-        DataFrame dataFrame= preProcesedDataStore.queryDataSet("Select distinct category from "+prepTableName);
-        Converter converter=new Converter();
-            /*for(ArrayList list:converter.convert(dataFrame)){
-                System.out.println(list.toString());
-            }*/
-        ArrayList<ArrayList> list=converter.convert(dataFrame);
-        for(ArrayList l:list){
-            for(Object s:l){
-                System.out.println(s.toString());
+        try {
+            DataFrame dataFrame= preProcesedDataStore.queryDataSet("Select distinct category from "+prepTableName);
+            Converter converter=new Converter();
+            List<Row> list=dataFrame.collectAsList();
+            List<String> stringList=new ArrayList<>();
+            for(Row row :list){
+                stringList.add(row.toString());
             }
+            return stringList;
         }
-        return list;
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public void setDropColumns(String[] dropColumns) {
