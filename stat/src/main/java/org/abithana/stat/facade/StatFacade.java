@@ -66,9 +66,9 @@ public class StatFacade implements Serializable {
                     s = s + " or ";
             }
 
-            df.registerTempTable("DataTbl");
-            DataFrame dataFrame = instance.getSqlContext().sql("Select * from DataTbl " + s);
-            return dataFrame;
+            String tblName="DataTbl";
+            String query="Select * from "+tblName+" " + s;
+            return queryTimeIndexDf(df,query,tblName);
         }
         catch (Exception e){
             e.printStackTrace();
@@ -92,10 +92,10 @@ public class StatFacade implements Serializable {
                     s = s + " or ";
             }
 
-            df.registerTempTable("DataTbl");
-            DataFrame dataFrame = instance.getSqlContext().sql("Select x,y from preprocessedData " + s);
-            dataFrame.show(20);
-            return dataFrame;
+            String tblName="DataTbl";
+            String query="Select x,y from "+tblName+" " + s ;
+            return queryTimeIndexDf(df,query,tblName);
+
         }
         catch (Exception e){
             e.printStackTrace();
@@ -108,18 +108,9 @@ public class StatFacade implements Serializable {
        * */
     public DataFrame categoryWiseColData(DataFrame df,String cat,String col){
 
-        try {
-            CrimeUtil crimeUtil=new CrimeUtil();
-            df=crimeUtil.getTimeIndexedDF(df, "Dates");
-            df.registerTempTable("DataTbl");
-            DataFrame dataFrame = instance.getSqlContext().sql("Select " + col + " from DataTbl where category=" + "'" + cat + "'");
-            dataFrame.show(30);
-            return dataFrame;
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-        return  null;
+        String tblName="DataTbl";
+        String query="Select " + col + " from "+tblName+" where category=" + "'" + cat + "'" ;
+        return queryTimeIndexDf(df,query,tblName);
     }
 
     /*get data crime year wise
@@ -127,16 +118,9 @@ public class StatFacade implements Serializable {
        * */
     public DataFrame categoryTimeData(DataFrame df,String cat){
 
-        try {
-            df.registerTempTable("DataTbl");
-            DataFrame dataFrame = instance.getSqlContext().sql("Select year,count(*) from preprocessedData where category='" + cat + "' group by year ");
-            dataFrame.show(30);
-            return dataFrame;
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-        return  null;
+        String tblName="DataTbl";
+        String query="Select year,count(*) from "+tblName+" where category='" + cat + "' group by year " ;
+        return queryTimeIndexDf(df,query,tblName);
     }
 
     /*get data crime categorywise
@@ -144,27 +128,41 @@ public class StatFacade implements Serializable {
    * */
     public DataFrame yearCategoryData(DataFrame df,int year){
 
-        try {
-            df.registerTempTable("DataTbl");
-            DataFrame dataFrame = instance.getSqlContext().sql("Select category,count(*) from preprocessedData where year='"+year+"' group by category ");
-            dataFrame.show(30);
-            return dataFrame;
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-        return  null;
+        String tblName="DataTbl";
+        String query="Select category,count(*) from "+tblName+" where year='"+year+"' group by category ";
+        return queryTimeIndexDf(df,query,tblName);
     }
+
+    /*get data crime categorywise frequncy according to given year range
+    * this gives data to visualize histogram
+    * */
+    public DataFrame categoryFrequency_givenTimeRange(DataFrame df, int yearFrom, int yearTo){
+
+        String tblName="DataTbl";
+        String query="Select category,count(*) from "+tblName+" where time between '" + yearFrom + "' AND '" + yearTo + "' group by category ";
+        return queryTimeIndexDf(df,query,tblName);
+    }
+
+
 
     public DataFrame timeWiseData(DataFrame df,int timeFrom,int timeTo){
 
         //convert Date to 1-24 time hours
-        CrimeUtil cu=new CrimeUtil();
-        df=cu.getTimeIndexedDF(df, "Dates");
+        String tblName="DataTbl";
+        String query="Select * from "+tblName+" where time between '" + timeFrom + "' AND '" + timeTo + "'";
+        return queryTimeIndexDf(df,query,tblName);
 
+    }
+
+    public DataFrame queryTimeIndexDf(DataFrame df,String query,String tblName){
+
+        //convert Date to 1-24 time hours
+       /* CrimeUtil cu=new CrimeUtil();
+        df=cu.getTimeIndexedDF(df, "Dates");
+*/
         try {
-            df.registerTempTable("DataTbl");
-            DataFrame dataFrame = instance.getSqlContext().sql("Select * from DataTbl where time between '" + timeFrom + "' AND '" + timeTo + "'");
+            df.registerTempTable(tblName);
+            DataFrame dataFrame = instance.getSqlContext().sql(query);
             dataFrame.show(50);
             return dataFrame;
         }
@@ -173,7 +171,6 @@ public class StatFacade implements Serializable {
         }
         return  null;
     }
-
 
     public List getAllFields(DataFrame dataFrame) {
         String str = dataFrame.collectAsList().toString();

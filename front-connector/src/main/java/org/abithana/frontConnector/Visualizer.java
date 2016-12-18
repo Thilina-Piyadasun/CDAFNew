@@ -32,12 +32,14 @@ public class Visualizer  implements Serializable{
     PreprocessorFacade preprocessorFacade=new PreprocessorFacade();
     DataStore initaldataStore =CrimeDataStore.getInstance();
     DataStore preProcesedDataStore= PreprocessedCrimeDataStore.getInstance();
+
     public void readFile(String path,String tblName){
         this.path=path;
         this.tblName=tblName;
         initaldataStore.read_file(path, tblName);
     }
-    public void doPreprocessing(String prepTaleName){
+
+    public void doPreprocessing(String prepTableName){
 
         DataFrame df= initaldataStore.getDataFrame();
         DataFrame f2=preprocessorFacade.handelMissingValues(df);
@@ -52,9 +54,13 @@ public class Visualizer  implements Serializable{
         }
 
         /*At final step in preprocessing save data frame in PreprocessedDataStore*/
-        preProcesedDataStore.saveTable(f2, prepTaleName);
+        preProcesedDataStore.saveTable(f2, prepTableName);
         preProcesedDataStore.getDataFrame().show(40);
 
+    }
+
+    public String[] getColumnNames(String prepTableName){
+        return preProcesedDataStore.showColumns(prepTableName);
     }
 
     public void predict(){
@@ -94,25 +100,50 @@ public class Visualizer  implements Serializable{
     }
 
     public List<HistogramBean> categoryWiseData(String category){
-       DataFrame df= initaldataStore.getPreprocessedData();
+       DataFrame df= preProcesedDataStore.getPreprocessedData();
         StatFacade statFacade=new StatFacade();
         DataFrame dataFrame=statFacade.categoryTimeData(df, category);
         return statFacade.getVisualizeList(dataFrame);
 
     }
     public List<CordinateBean> heatMapData(String[] categories){
-        DataFrame df= initaldataStore.getPreprocessedData();
+        DataFrame df= preProcesedDataStore.getPreprocessedData();
         StatFacade statFacade=new StatFacade();
         DataFrame dataFrame=statFacade.categoryWiseCoordinates(df,categories);
         dataFrame.show(20);
         return statFacade.getCordinateList(dataFrame);
     }
     public List<HistogramBean> yearWiseData(int year){
-        DataFrame df= initaldataStore.getPreprocessedData();
+        DataFrame df= preProcesedDataStore.getPreprocessedData();
         StatFacade statFacade=new StatFacade();
         DataFrame dataFrame=statFacade.yearCategoryData(df, year);
         return statFacade.getVisualizeList(dataFrame);
 
+    }
+
+    public List<HistogramBean> timeLineAnimation(int startYear,int endYear){
+        DataFrame df= preProcesedDataStore.getPreprocessedData();
+        StatFacade statFacade=new StatFacade();
+        DataFrame dataFrame=statFacade.categoryFrequency_givenTimeRange(df,startYear,endYear);
+        dataFrame.show(20);
+        return statFacade.getVisualizeList(dataFrame);
+
+    }
+
+    public  ArrayList<ArrayList> getCategoories(String prepTableName){
+
+        DataFrame dataFrame= preProcesedDataStore.queryDataSet("Select distinct category from "+prepTableName);
+        Converter converter=new Converter();
+            /*for(ArrayList list:converter.convert(dataFrame)){
+                System.out.println(list.toString());
+            }*/
+        ArrayList<ArrayList> list=converter.convert(dataFrame);
+        for(ArrayList l:list){
+            for(Object s:l){
+                System.out.println(s.toString());
+            }
+        }
+        return list;
     }
 
     public void setDropColumns(String[] dropColumns) {
