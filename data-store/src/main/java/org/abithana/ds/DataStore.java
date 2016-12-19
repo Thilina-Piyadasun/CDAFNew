@@ -31,6 +31,8 @@ public interface DataStore {
     */
     void read_file(String filename ,int storage_level);
 
+    DataFrame readCsv(String filename);
+
     void read_file(String filename ,String tbleName);
 
     DataFrame getDataFrame();

@@ -3,6 +3,7 @@ package org.abithana.frontConnector;
 import org.abithana.ds.CrimeDataStore;
 import org.abithana.ds.DataStore;
 import org.abithana.ds.PreprocessedCrimeDataStore;
+import org.abithana.prediction.ClassificationModel;
 import org.abithana.prediction.MultilayerPerceptronCrimeClassifier;
 import org.abithana.prediction.NaiveBaysianCrimeClassifier;
 import org.abithana.prediction.RandomForestCrimeClassifier;
@@ -27,12 +28,14 @@ public class Visualizer  implements Serializable{
 
     private String path;
     private String tblName;
+    private ClassificationModel classificationModel;
 
     private String[] dropColumns={"resolution","descript","address"};
 
     PreprocessorFacade preprocessorFacade=new PreprocessorFacade();
     DataStore initaldataStore =CrimeDataStore.getInstance();
     DataStore preProcesedDataStore= PreprocessedCrimeDataStore.getInstance();
+    Converter converter=new Converter();
 
     public void readFile(String path,String tblName){
         this.path=path;
@@ -94,7 +97,6 @@ public class Visualizer  implements Serializable{
     public ArrayList<ArrayList> executeQueries(String query){
         try {
             DataFrame dataFrame= initaldataStore.queryDataSet(query);
-            Converter converter=new Converter();
             ArrayList<ArrayList> list=converter.convert(dataFrame);
             return list;
         }
@@ -167,6 +169,84 @@ public class Visualizer  implements Serializable{
             return stringList;
         }
         catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    /*
+    * Prediction Methods
+    * */
+    public ArrayList<ArrayList> perceptronCrossVaidationModel(String testPath,String[] feature_columns, String label,int[] layers,int blockSize,long seed,int maxIterations,double partition,int folds){
+        try {
+            classificationModel=new MultilayerPerceptronCrimeClassifier(feature_columns,label,layers,blockSize,seed,maxIterations);
+            DataFrame df=classificationModel.train_crossValidatorModel(preProcesedDataStore.getDataFrame(), initaldataStore.readCsv(testPath), partition, folds);
+
+            ArrayList<ArrayList> list=converter.convert(df);
+            return list;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public ArrayList<ArrayList> RForestCrossVaidationModel(String testPath,String[] feature_columns, String label,int trees,int seed,double partition,int folds){
+        try {
+            classificationModel=new RandomForestCrimeClassifier(feature_columns,label,trees,seed);
+            DataFrame df=classificationModel.train_crossValidatorModel(preProcesedDataStore.getDataFrame(), initaldataStore.readCsv(testPath), partition,folds);
+
+            ArrayList<ArrayList> list=converter.convert(df);
+            return list;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public ArrayList<ArrayList> NBCrossVaidationModel(String testPath,String[] feature_columns, String label,double partition,int folds){
+        try {
+            classificationModel=new NaiveBaysianCrimeClassifier(feature_columns,label);
+            DataFrame df=classificationModel.train_crossValidatorModel(preProcesedDataStore.getDataFrame(), initaldataStore.readCsv(testPath), partition,folds);
+
+            ArrayList<ArrayList> list=converter.convert(df);
+            return list;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public ArrayList<ArrayList> perceptronPipelineModel(String testPath,String[] feature_columns, String label,int[] layers,int blockSize,long seed,int maxIterations,double partition){
+        try {
+            classificationModel=new MultilayerPerceptronCrimeClassifier(feature_columns,label,layers,blockSize,seed,maxIterations);
+            DataFrame df=classificationModel.train_pipelineModel(preProcesedDataStore.getDataFrame(), initaldataStore.readCsv(testPath), partition);
+
+            ArrayList<ArrayList> list=converter.convert(df);
+            return list;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public ArrayList<ArrayList> RForestPipelineModel(String testPath,String[] feature_columns, String label,int trees,int seed,double partition){
+        try {
+            classificationModel=new RandomForestCrimeClassifier(feature_columns,label,trees,seed);
+            DataFrame df=classificationModel.train_pipelineModel(preProcesedDataStore.getDataFrame(), initaldataStore.readCsv(testPath), partition);
+
+            ArrayList<ArrayList> list=converter.convert(df);
+            return list;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public ArrayList<ArrayList> NBPipelineModel(String testPath,String[] feature_columns, String label,double partition){
+        try {
+            classificationModel=new NaiveBaysianCrimeClassifier(feature_columns,label);
+            DataFrame df=classificationModel.train_pipelineModel(preProcesedDataStore.getDataFrame(), initaldataStore.readCsv(testPath), partition);
+
+            ArrayList<ArrayList> list=converter.convert(df);
+            return list;
+        }catch (Exception e){
             e.printStackTrace();
         }
         return null;

@@ -54,6 +54,18 @@ public class CrimeDataStore implements DataStore, Serializable{
         input.registerTempTable(initailtableName);
         cache_data(1);
     }
+
+    public DataFrame readCsv(String filename){
+
+        // Load the input data to a static Data Frame
+        DataFrame df= org.abithana.utill.Config.getInstance().getSqlContext().read()
+                .format("com.databricks.spark.csv")
+                .option("header","true")
+                .option("inferSchema","true")
+                .load(filename);
+
+        return  df;
+    }
     private void cache_data(int storage_level){
 
         if(storage_level==1)

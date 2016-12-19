@@ -45,7 +45,7 @@ public abstract class ClassificationModel {
     /*
     * Use only getPipeline set to getPipeline model and get accuracy
     * */
-    public DataFrame train_crossValidatorModel(DataFrame train, DataFrame test, double partition)throws Exception{
+    public DataFrame train_crossValidatorModel(DataFrame train, DataFrame test, double partition,int folds)throws Exception{
 
         /*transform trian set to features*/
         DataFrame trainData=getFeaturesFrame(train, feature_columns);
@@ -78,7 +78,7 @@ public abstract class ClassificationModel {
                         // ml.evaluation.MulticlassClassificationEvaluator
                 .setEvaluator(evaluator)
                 .setEstimatorParamMaps(paramGrid)
-                .setNumFolds(2);
+                .setNumFolds(folds);
 
         CrossValidatorModel model = cv.fit(trainingData);
 

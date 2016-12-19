@@ -24,10 +24,15 @@ import java.util.List;
  */
 public class RandomForestCrimeClassifier extends ClassificationModel {
 
-    public RandomForestCrimeClassifier(String[] feature_columns, String label) {
+    private int noOfTrees;
+    private int seed;
+
+    public RandomForestCrimeClassifier(String[] feature_columns, String label,int noOfTrees,int seed) {
         this.testFeature_columns = feature_columns;
         this.feature_columns=feature_columns;
         this.label = label;
+        this.noOfTrees=noOfTrees;
+        this.seed=seed;
     }
 
 
@@ -55,8 +60,8 @@ public class RandomForestCrimeClassifier extends ClassificationModel {
         RandomForestClassifier rf = new RandomForestClassifier()
                 .setLabelCol(indexedLabel)
                 .setFeaturesCol(indexedFeatures)
-                .setSeed(1100)
-                .setNumTrees(5);
+                .setSeed(seed)
+                .setNumTrees(noOfTrees);
 
         // Convert indexed labels back to original labels.
         IndexToString labelConverter = new IndexToString()
