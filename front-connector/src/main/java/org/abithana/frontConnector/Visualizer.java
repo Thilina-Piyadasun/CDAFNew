@@ -147,11 +147,11 @@ public class Visualizer  implements Serializable{
     /*
     * Data for time line animation
     * */
-    public List<HistogramBean> timeLineAnimation(int startYear,int endYear){
+    public List<CordinateBean> timeLineAnimation(int startYear,int endYear){
         DataFrame df= preProcesedDataStore.getDataFrame();
         StatFacade statFacade=new StatFacade();
         DataFrame dataFrame=statFacade.categoryFrequency_givenTimeRange(df,startYear,endYear);
-        return statFacade.getVisualizeList(dataFrame);
+        return statFacade.getCordinateList(dataFrame);
 
     }
 

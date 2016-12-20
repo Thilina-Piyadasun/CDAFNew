@@ -139,7 +139,7 @@ public class StatFacade implements Serializable {
     public DataFrame categoryFrequency_givenTimeRange(DataFrame df, int yearFrom, int yearTo){
 
         String tblName="DataTbl";
-        String query="Select category,count(*) from "+tblName+" where year between '" + yearFrom + "' AND '" + yearTo + "' group by category ";
+        String query="Select x,y from "+tblName+" where year between '" + yearFrom + "' AND '" + yearTo + "' group by category ";
         return queryTimeIndexDf(df,query,tblName);
     }
 
