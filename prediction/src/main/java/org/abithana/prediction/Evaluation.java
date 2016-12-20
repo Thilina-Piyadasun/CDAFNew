@@ -19,4 +19,24 @@ public class Evaluation implements Serializable{
         Recall = recall;
         this.fmeasure = fmeasure;
     }
+
+    public double getIndexedLabel() {
+        return indexedLabel;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public double getPrecision() {
+        return Precision;
+    }
+
+    public double getRecall() {
+        return Recall;
+    }
+
+    public double getFmeasure() {
+        return fmeasure;
+    }
 }

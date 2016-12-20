@@ -3,10 +3,7 @@ package org.abithana.frontConnector;
 import org.abithana.ds.CrimeDataStore;
 import org.abithana.ds.DataStore;
 import org.abithana.ds.PreprocessedCrimeDataStore;
-import org.abithana.prediction.ClassificationModel;
-import org.abithana.prediction.MultilayerPerceptronCrimeClassifier;
-import org.abithana.prediction.NaiveBaysianCrimeClassifier;
-import org.abithana.prediction.RandomForestCrimeClassifier;
+import org.abithana.prediction.*;
 import org.abithana.preprocessor.facade.PreprocessorFacade;
 import org.abithana.stat.facade.StatFacade;
 import org.abithana.statBeans.CordinateBean;
@@ -72,7 +69,7 @@ public class Visualizer  implements Serializable{
         String[] featureCol = {"dayOfWeek", "pdDistrict","time","year"};
         String label = "category";
         int[] layers = new int[]{featureCol.length,500,39};
-        MultilayerPerceptronCrimeClassifier rf=new MultilayerPerceptronCrimeClassifier(featureCol,label,layers,256, 1234L, 100);
+        RandomForestCrimeClassifier rf=new RandomForestCrimeClassifier(featureCol,label,20, 1234);
         try{
             Config instance=Config.getInstance();
             DataFrame df=instance.getSqlContext().read()
@@ -80,7 +77,12 @@ public class Visualizer  implements Serializable{
                     .option("header","true")
                     .option("inferSchema","true")
                     .load("D:\\FYP\\test.csv");
-            rf.train_pipelineModel(preProcesedDataStore.getDataFrame(), df, 0.8);
+            DataFrame df1=rf.train_pipelineModel(preProcesedDataStore.getDataFrame(), df, 0.8);
+            df1.show(30);
+            List<Evaluation> list=rf.getEvaluationResult();
+            for(Evaluation e:list){
+                System.out.println(e.getCategory() +" precision -"+ e.getPrecision()+ " recall - "+e.getRecall()+" fmeasure-"+e.getFmeasure());
+            }
         }catch (Exception e){
             e.printStackTrace();
         }

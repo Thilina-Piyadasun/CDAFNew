@@ -84,7 +84,13 @@ public abstract class ClassificationModel {
 
         if(model!=null){
             DataFrame predictions = model.transform(testData);
+            predictions.registerTempTable("prediction");
             DataFrame evaluations = model.transform(evalData);
+            evaluationProcess(evaluations);
+            String colAsString=getOutputColsAsString();
+
+            predictions=Config.getInstance().getSqlContext().sql("select "+colAsString+" from prediction");
+            predictions.show(40);
             evaluationProcess(evaluations);
             return predictions;
         }
@@ -114,8 +120,13 @@ public abstract class ClassificationModel {
 
         if(model!=null){
             DataFrame predictions = model.transform(testData);
+            predictions.registerTempTable("prediction");
             DataFrame evaluations = model.transform(evalData);
             evaluationProcess(evaluations);
+            String colAsString=getOutputColsAsString();
+
+            predictions=Config.getInstance().getSqlContext().sql("select "+colAsString+" from prediction");
+            predictions.show(40);
             return predictions;
         }
         else {
@@ -178,5 +189,16 @@ public abstract class ClassificationModel {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private String getOutputColsAsString(){
+        String cols[]=mlDataParser.removeIndexWord(feature_columns);
+        String s=cols[0];
+
+        for(int i=1;i<cols.length;i++){
+            s=s+","+cols[i];
+        }
+        s=s+","+predictedLabel;
+        return s;
     }
 }
