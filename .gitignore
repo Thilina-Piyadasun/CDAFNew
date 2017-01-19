@@ -1,0 +1,77 @@
+*.class
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+# Created by .ignore support plugin (hsz.mobi)
+.gitignore
+.idea/
+Crime-Data-Analysis-Framework-New.iml
+Test/
+*.iml
+crime-utill/src/main/resources/
+crime-utill/target/generated-sources/
+crime-utill/target/surefire/
+data-store/src/main/resources/
+data-store/target/generated-sources/
+data-store/target/generated-test-sources/
+data-store/target/surefire/
+front-connector/src/main/resources/
+front-connector/target/generated-sources/
+front-connector/target/surefire/
+prediction/src/main/resources/
+prediction/target/generated-sources/
+prediction/target/surefire/
+preprocessor/src/main/resources/
+preprocessor/target/generated-sources/
+preprocessor/target/surefire/
+prescription/src/main/resources/
+prescription/target/generated-sources/
+prescription/target/surefire/
+stat/src/main/resources/
+stat/target/generated-sources/
+stat/target/surefire/
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Logs and databases #
+######################
+*.log
+*.sql
+*.sqlite
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
