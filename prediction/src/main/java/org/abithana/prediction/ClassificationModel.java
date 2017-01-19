@@ -1,9 +1,12 @@
 package org.abithana.prediction;
 
 import org.abithana.utill.Config;
+import org.apache.spark.ml.Model;
 import org.apache.spark.ml.Pipeline;
 import org.apache.spark.ml.PipelineModel;
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator;
+import org.apache.spark.ml.feature.VectorIndexer;
+import org.apache.spark.ml.feature.VectorIndexerModel;
 import org.apache.spark.ml.param.ParamMap;
 import org.apache.spark.ml.tuning.CrossValidator;
 import org.apache.spark.ml.tuning.CrossValidatorModel;
@@ -13,13 +16,16 @@ import org.apache.spark.mllib.linalg.Matrix;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Thilina on 12/1/2016.
  */
-public abstract class ClassificationModel {
+public abstract class ClassificationModel implements Serializable{
 
     String generated_feature_col_name="features";
     String indexedLabel="indexedLabel";
@@ -30,12 +36,14 @@ public abstract class ClassificationModel {
     String[] feature_columns;
     String[] testFeature_columns;
     String label;
+    String modelType;
     List<Evaluation> evalList=new ArrayList<>();
 
     MLDataParser mlDataParser=new MLDataParser();
 
+    Model model;
 
-    abstract Pipeline getPipeline(DataFrame trainData, DataFrame testData);
+    abstract Pipeline getPipeline(DataFrame trainData);
 
     /*Method to get eveluation results of created model*/
     public List<Evaluation> getEvaluationResult(){
@@ -45,16 +53,13 @@ public abstract class ClassificationModel {
     /*
     * Use only getPipeline set to getPipeline model and get accuracy
     * */
-    public DataFrame train_crossValidatorModel(DataFrame train, DataFrame test, double partition,int folds)throws Exception{
+    public void train_crossValidatorModel(DataFrame train, double partition,int folds)throws Exception{
+        modelType="crossvalidation";
 
         /*transform trian set to features*/
         DataFrame trainData=getFeaturesFrame(train, feature_columns);
 
-        /*preprocess user given test data set and transform it*/
-        test=mlDataParser.preprocessTestData(test);
-        DataFrame testData=getFeaturesFrame(test,mlDataParser.removeIndexWord(testFeature_columns));
-
-        Pipeline pipeline= getPipeline(trainData, testData);
+        Pipeline pipeline= getPipeline(trainData);
         if(partition>=1){
             partition=0.7;
         }
@@ -83,30 +88,38 @@ public abstract class ClassificationModel {
         CrossValidatorModel model = cv.fit(trainingData);
 
         if(model!=null){
-            DataFrame predictions = model.transform(testData);
-            predictions.registerTempTable("prediction");
+            modelType="crossvalidation";
+            try {
+                model.write().overwrite().save("D:\\CrossValidatorModel");
+            }catch (Exception e){
+                System.out.println("====================================");
+                System.out.println("CANNOT SAVE CrossValidatorModel");
+                System.out.println("====================================");
+                e.printStackTrace();
+            }
+
             DataFrame evaluations = model.transform(evalData);
             evaluationProcess(evaluations);
-            String colAsString=getOutputColsAsString();
+            /*CrossValidator cv = new CrossValidator()
+                    .setEstimator(pipeline)
+                    .setEvaluator(new MulticlassClassificationEvaluator())
+                    .setEstimatorParamMaps(paramGrid)
+                    .setNumFolds(10);*/
 
-            predictions=Config.getInstance().getSqlContext().sql("select "+colAsString+" from prediction");
-            predictions.show(40);
-            evaluationProcess(evaluations);
-            return predictions;
         }
         else {
             throw new Exception("no trained randomForest classifier model found in cross validation");
         }
     }
 
-    public DataFrame train_pipelineModel(DataFrame train, DataFrame test, double partition)throws Exception{
+    public void train_pipelineModel(DataFrame train, double partition)throws Exception{
 
         /*transform trian set to features*/
         DataFrame trainData=getFeaturesFrame(train, feature_columns);
         /*preprocess user given test data set and transform it*/
-        DataFrame testData=getTestFeatureFrame(test);
+      //  DataFrame testData=getTestFeatureFrame(test);
 
-        Pipeline pipeline= getPipeline(trainData, testData);
+        Pipeline pipeline= getPipeline(trainData);
 
         if(partition>=1){
             partition=0.7;
@@ -119,19 +132,54 @@ public abstract class ClassificationModel {
         PipelineModel model = pipeline.fit(trainingData);
 
         if(model!=null){
-            DataFrame predictions = model.transform(testData);
-            predictions.registerTempTable("prediction");
+            modelType="pipeline";
+            FileOutputStream fos = new FileOutputStream("D:\\pipelineee");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(model);
+            oos.close();
+
+            model.write().overwrite().save("D:\\pipeline");
+
             DataFrame evaluations = model.transform(evalData);
             evaluationProcess(evaluations);
-            String colAsString=getOutputColsAsString();
 
-            predictions=Config.getInstance().getSqlContext().sql("select "+colAsString+" from prediction");
-            predictions.show(40);
-            return predictions;
         }
         else {
             throw new Exception("no trained randomForest classifier model found in Pipeline Model");
         }
+    }
+
+    public DataFrame predict(DataFrame test){
+        try{
+            test.show(30);
+            Model model;
+            if(modelType=="crossvalidation") {
+                model = CrossValidatorModel.load("D:\\CrossValidatorModel");
+            }
+            else{
+                model=PipelineModel.load("D:\\pipelineModel");
+            }
+            test=mlDataParser.preprocessTestData(test);
+            DataFrame testData=getFeaturesFrame(test,mlDataParser.removeIndexWord(testFeature_columns));
+            vectorIndexerTest(testData);
+
+            if(model!=null){
+
+                DataFrame predictions = model.transform(testData);
+                predictions.registerTempTable("prediction");
+
+                String colAsString=getOutputColsAsString();
+
+                predictions=Config.getInstance().getSqlContext().sql("select "+colAsString+" from prediction");
+                predictions.show(40);
+                return predictions;
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
 
@@ -191,7 +239,7 @@ public abstract class ClassificationModel {
         return null;
     }
 
-    private String getOutputColsAsString(){
+    public String getOutputColsAsString(){
         String cols[]=mlDataParser.removeIndexWord(feature_columns);
         String s=cols[0];
 
@@ -200,5 +248,13 @@ public abstract class ClassificationModel {
         }
         s=s+","+predictedLabel;
         return s;
+    }
+
+    public void vectorIndexerTest(DataFrame testData){
+        VectorIndexerModel featureIndexerTest = new VectorIndexer()
+                .setInputCol(generated_feature_col_name)
+                .setOutputCol(indexedFeatures)
+                .setMaxCategories(40)
+                .fit(testData);
     }
 }

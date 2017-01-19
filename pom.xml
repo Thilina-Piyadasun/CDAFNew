@@ -16,6 +16,7 @@
         <module>crime-utill</module>
         <module>preprocessor</module>
         <module>prediction</module>
+        <module>prescription</module>
     </modules>
 
     <dependencies>

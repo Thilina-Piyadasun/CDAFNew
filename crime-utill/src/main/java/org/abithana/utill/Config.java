@@ -11,9 +11,9 @@ import java.io.Serializable;
  */
 public class Config implements Serializable{
 
-    private final SparkConf conf = new SparkConf().setMaster("local").setAppName("DataReader");
-    private final JavaSparkContext sc  = new JavaSparkContext(conf);
-    private final SQLContext sqlContext =  new org.apache.spark.sql.SQLContext(sc);
+    private final transient SparkConf conf = new SparkConf().setMaster("local").setAppName("DataReader");
+    private final transient JavaSparkContext sc  = new JavaSparkContext(conf);
+    private final transient SQLContext sqlContext =  new org.apache.spark.sql.SQLContext(sc);
 
     private static Config instance=new Config();
 

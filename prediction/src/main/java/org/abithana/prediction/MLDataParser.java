@@ -133,6 +133,7 @@ public class MLDataParser implements Serializable{
                     .setWithMean(true);
 
             DataFrame standardisedDf = scaler.fit(featuredDF).transform(featuredDF);
+
             return standardisedDf;
         }
         catch (Exception e){

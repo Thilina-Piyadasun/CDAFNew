@@ -100,8 +100,7 @@ public class PrescriptionDataPrev implements Serializable{
 
             int tractID=y*N1+x;
 
-            PresDataBean prescritptionData=new PresDataBean(weight, lat1, lon1,tractID,latmid,lonMid);
-            return prescritptionData;
+            return new PresDataBean(weight, lat1, lon1,tractID,latmid,lonMid);
         }).collect();
 
         DataFrame dataFrame = Config.getInstance().getSqlContext().createDataFrame(prescritptionDataJavaRDD, PresDataBean.class);

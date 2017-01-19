@@ -38,6 +38,11 @@ public class PreprocessorFacade {
 
         return preprocessing.dropCol(df,column);
     }
+
+    public DataFrame integratePopulationData(String populatinTableName,String preprocessTblName){
+        return preprocessing.integratePopulationData(populatinTableName,preprocessTblName);
+    }
+
     public Column getCol(DataFrame df,String column){
 
         return preprocessing.getCol(df,column);

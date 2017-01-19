@@ -1,8 +1,6 @@
 package org.abithana.frontConnector;
 
-import org.abithana.ds.CrimeDataStore;
-import org.abithana.ds.DataStore;
-import org.abithana.ds.PreprocessedCrimeDataStore;
+import org.abithana.ds.*;
 import org.abithana.prediction.*;
 import org.abithana.preprocessor.facade.PreprocessorFacade;
 import org.abithana.stat.facade.StatFacade;
@@ -25,74 +23,26 @@ public class Visualizer  implements Serializable{
 
     private String path;
     private String tblName;
-    private ClassificationModel classificationModel;
 
     private String[] dropColumns={"resolution","descript","address"};
 
-    PreprocessorFacade preprocessorFacade=new PreprocessorFacade();
-    DataStore initaldataStore =CrimeDataStore.getInstance();
+
+    CrimeDataStore initaldataStore =CrimeDataStore.getInstance();
     DataStore preProcesedDataStore= PreprocessedCrimeDataStore.getInstance();
     Converter converter=new Converter();
 
-    public void readFile(String path,String tblName){
-        this.path=path;
-        this.tblName=tblName;
-        initaldataStore.read_file(path, tblName);
+    public void readFile(String path,String tableName){
+
+        initaldataStore.getColumns(path);
+        initaldataStore.setDatesCol("Dates");
+        initaldataStore.setCategoryCol("Category");
+        initaldataStore.setDayOfWeekCol("DayOfWeek");
+        initaldataStore.setPdDistrictCol("PdDistrict");
+        initaldataStore.setLatitudeCol("X");
+        initaldataStore.setLongitudeCol("Y");
+        initaldataStore.saveTable(tableName).show(30);
     }
 
-    public void doPreprocessing(String prepTableName){
-
-        DataFrame df= initaldataStore.getDataFrame();
-        DataFrame f2=preprocessorFacade.handelMissingValues(df);
-
-        List columns= Arrays.asList(f2.columns());
-        if(columns.contains("Dates")&&(!columns.contains("Time"))) {
-            f2=preprocessorFacade.getTimeIndexedDF(f2, "Dates");
-        }
-
-        for(String s: dropColumns){
-            f2=preprocessorFacade.dropCol(f2,s);
-        }
-
-        /*At final step in preprocessing save data frame in PreprocessedDataStore*/
-        preProcesedDataStore.saveTable(f2, prepTableName);
-        preProcesedDataStore.getDataFrame().show(40);
-
-    }
-
-    public String[] getColumnNames(String prepTableName){
-        return preProcesedDataStore.showColumns(prepTableName);
-    }
-
-    public void predict(){
-
-        String[] featureCol = {"dayOfWeek", "pdDistrict","time","year"};
-        String label = "category";
-        int[] layers = new int[]{featureCol.length,500,39};
-        RandomForestCrimeClassifier rf=new RandomForestCrimeClassifier(featureCol,label,20, 1234);
-        try{
-            Config instance=Config.getInstance();
-            DataFrame df=instance.getSqlContext().read()
-                    .format("com.databricks.spark.csv")
-                    .option("header","true")
-                    .option("inferSchema","true")
-                    .load("D:\\FYP\\test.csv");
-            DataFrame df1=rf.train_pipelineModel(preProcesedDataStore.getDataFrame(), df, 0.8);
-            df1.show(30);
-            List<Evaluation> list=rf.getEvaluationResult();
-            for(Evaluation e:list){
-                System.out.println(e.getCategory() +" precision -"+ e.getPrecision()+ " recall - "+e.getRecall()+" fmeasure-"+e.getFmeasure());
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-
-    /*Returns preprocess data table name*/
-    public String getPreprocessTableName(){
-        return preProcesedDataStore.getTableName();
-    }
     /*
     * to execute queries from visualization
     * */
@@ -176,10 +126,10 @@ public class Visualizer  implements Serializable{
         return null;
     }
 
-
-    /*
+/*
+    *//*
     * Prediction Methods
-    * */
+    * *//*
     public ArrayList<ArrayList> perceptronCrossVaidationModel(String testPath,String[] feature_columns, String label,int[] layers,int blockSize,long seed,int maxIterations,double partition,int folds){
         try {
             classificationModel=new MultilayerPerceptronCrimeClassifier(feature_columns,label,layers,blockSize,seed,maxIterations);
@@ -252,7 +202,7 @@ public class Visualizer  implements Serializable{
             e.printStackTrace();
         }
         return null;
-    }
+    }*/
 
     public void setDropColumns(String[] dropColumns) {
         this.dropColumns = dropColumns;

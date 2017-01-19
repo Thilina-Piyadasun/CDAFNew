@@ -1,6 +1,8 @@
 package org.abithana.ds;
 
 import org.abithana.beans.CrimeDataBean;
+import org.abithana.beans.PopulationBean;
+import org.abithana.utill.Config;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.mllib.linalg.Vector;
@@ -10,62 +12,119 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.storage.StorageLevel;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by acer on 11/19/2016.
+ * Created by Thilina on 11/19/2016.
  */
-public class CrimeDataStore implements DataStore, Serializable{
+public class CrimeDataStore implements Serializable{
 
     private static DataFrame input;
-    private static DataFrame preprocessedDf;
-    private String initailtableName= "crimeData";
+    private String initailtableName;
+    private String crimeFilePath=null;
     private static CrimeDataStore crimeDataStore=new CrimeDataStore();
+    private Config instance= Config.getInstance();
+
+
+    private String categoryCol=null;
+    private String dayOfWeekCol =null;
+    private String pdDistrictCol =null;
+    private String latitudeCol=null;
+    private String longitudeCol=null;
+    private String datesCol =null;
+    private String resolution=null;
 
     private CrimeDataStore(){
 
     }
 
+    public String[] getColumns(String filePath){
+
+        this.crimeFilePath=filePath;
+        String[] colums = instance.getSqlContext().read()
+                .format("com.databricks.spark.csv")
+                .option("header","true")
+                .option("inferSchema","true")
+                .load(filePath).columns();
+
+        return colums;
+    }
+
+    public List<String> getUserRevisedColumns(){
+
+        List<String> selectedColums=new ArrayList<>();
+
+        if(dayOfWeekCol !=null){
+            selectedColums.add(dayOfWeekCol);
+        }if(pdDistrictCol !=null){
+            selectedColums.add(pdDistrictCol);
+        }if(datesCol !=null) {
+            selectedColums.add(datesCol);
+        }if(resolution!=null){
+            selectedColums.add(resolution);
+        }
+        if(categoryCol!=null){
+            selectedColums.add(categoryCol);
+        }if(latitudeCol!=null){
+            selectedColums.add(latitudeCol);
+        }if(longitudeCol!=null){
+            selectedColums.add(longitudeCol);
+        }
+        return selectedColums;
+
+    }
     public static CrimeDataStore getInstance(){
         return crimeDataStore;
     }
-    public void read_file(String filename ,int storage_level){
+
+    public DataFrame saveTable(String tableName){
 
         // Load the input data to a static Data Frame
-         input=sqlContext.read()
+        input = instance.getSqlContext().read()
                 .format("com.databricks.spark.csv")
                 .option("header","true")
                 .option("inferSchema","true")
-                .load(filename);
+                .load(crimeFilePath);
 
-        input.saveAsTable("crimeData");
-        cache_data(storage_level);
-    }
-    public void read_file(String filename ,String tbleName){
+        //create temp table for get unique format
+        String tmptbl=tableName+"_temp";
+        input.registerTempTable(tmptbl);
 
-        initailtableName=tbleName;
-        // Load the input data to a static Data Frame
-        input= org.abithana.utill.Config.getInstance().getSqlContext().read()
-                .format("com.databricks.spark.csv")
-                .option("header","true")
-                .option("inferSchema","true")
-                .load(filename);
+        List<String> list=getUserRevisedColumns();
+        String exp="";
 
-        input.registerTempTable(initailtableName);
+        for(int i=0;i<list.size();i++){
+            if(i!=0) {
+                exp = exp + ","+list.get(i);
+            }else {
+                exp = list.get(0);
+            }
+        }
+        input=instance.getSqlContext().sql("Select "+exp+" from "+tmptbl);
+
+        List<CrimeDataBean> crimeDataBeanList = input.javaRDD().map(new Function<Row, CrimeDataBean>() {
+            public CrimeDataBean call(Row row) {
+
+                CrimeDataBean crimeDataBean=new CrimeDataBean(row.getAs(datesCol),row.getAs(categoryCol),row.getAs(dayOfWeekCol),row.getAs(pdDistrictCol),row.getAs(resolution),row.getAs(latitudeCol),row.getAs(longitudeCol));
+                return crimeDataBean;
+            }
+        }).collect();
+
+
+        input=instance.getSqlContext().createDataFrame(crimeDataBeanList,CrimeDataBean.class);
+        input.show(50);
+
+        input.registerTempTable(tableName);
+        //set table name for further use
+        initailtableName=tableName;
+        //drop registed tmp table
+        instance.getSqlContext().dropTempTable(tmptbl);
         cache_data(1);
+        return  input;
     }
 
-    public DataFrame readCsv(String filename){
 
-        // Load the input data to a static Data Frame
-        DataFrame df= org.abithana.utill.Config.getInstance().getSqlContext().read()
-                .format("com.databricks.spark.csv")
-                .option("header","true")
-                .option("inferSchema","true")
-                .load(filename);
-
-        return  df;
-    }
     private void cache_data(int storage_level){
 
         if(storage_level==1)
@@ -78,17 +137,73 @@ public class CrimeDataStore implements DataStore, Serializable{
             input.persist(StorageLevel.MEMORY_AND_DISK_SER());
     }
 
+    public String getCategoryCol() {
+        return categoryCol;
+    }
+
+    public void setCategoryCol(String categoryCol) {
+        this.categoryCol = categoryCol;
+    }
+
+    public String getDayOfWeekCol() {
+        return dayOfWeekCol;
+    }
+
+    public void setDayOfWeekCol(String dayOfWeekCol) {
+        this.dayOfWeekCol = dayOfWeekCol;
+    }
+
+    public String getPdDistrictCol() {
+        return pdDistrictCol;
+    }
+
+    public void setPdDistrictCol(String pdDistrictCol) {
+        this.pdDistrictCol = pdDistrictCol;
+    }
+
+    public String getLatitudeCol() {
+        return latitudeCol;
+    }
+
+    public void setLatitudeCol(String latitudeCol) {
+        this.latitudeCol = latitudeCol;
+    }
+
+    public String getLongitudeCol() {
+        return longitudeCol;
+    }
+
+    public void setLongitudeCol(String longitudeCol) {
+        this.longitudeCol = longitudeCol;
+    }
+
+    public String getResolution() {
+        return resolution;
+    }
+
+    public void setResolution(String resolution) {
+        this.resolution = resolution;
+    }
+
+    public String getDatesCol() {
+        return datesCol;
+    }
+
+    public void setDatesCol(String datesCol) {
+        this.datesCol = datesCol;
+    }
+
     public JavaRDD getInitialRDD(){
         return getRDD(initailtableName);
     }
 
-    public JavaRDD getRDD(String tableName){
+    private JavaRDD getRDD(String tableName){
 
         try{
-            DataFrame rdd=sqlContext.sql("Select Dates,DayOfWeek,PdDistrict,Category,X,Y from "+tableName);
+            DataFrame rdd=instance.getSqlContext().sql("Select dateAndTime,dayOfWeek, pdDistrict, category,resolution, lattitude, longitude from " + tableName);
             JavaRDD<CrimeDataBean> crimeDataBeanJavaRDD = rdd.javaRDD().map(new Function<Row, CrimeDataBean>() {
                 public CrimeDataBean call(Row row) {
-                    CrimeDataBean crimeDataBean = new CrimeDataBean(row.getTimestamp(0),row.getString(1),row.getString(2),row.getString(3),row.getDouble(4),row.getDouble(5));
+                    CrimeDataBean crimeDataBean = new CrimeDataBean(row.getAs("dateAndTime"),row.getAs("categoryCol"),row.getAs("dayOfWeek"),row.getAs("pdDistrict"),row.getAs("resolution"),row.getAs("lattitude"),row.getAs("longitude"));
                     return crimeDataBean;
                 }
             });
@@ -100,14 +215,14 @@ public class CrimeDataStore implements DataStore, Serializable{
         return  null;
     }
 
-    public  JavaRDD<Vector> getDataVector(){
+    public  JavaRDD<Vector> getDataVector(String tableName){
 
         try{
-            DataFrame rdd=sqlContext.sql("Select Dates,DayOfWeek,PdDistrict,Category,X,Y from "+initailtableName);
+            DataFrame rdd=instance.getSqlContext().sql("Select  lattitude, longitude from " + tableName);
 
             JavaRDD<Vector> crimeDataBeanJavaRDD = rdd.javaRDD().map(new Function<Row, Vector>() {
                 public Vector call(Row row) {
-                    return Vectors.dense(row.getDouble(4), row.getDouble(5));
+                    return Vectors.dense(row.getDouble(0),row.getDouble(1));
                 }
             });
             return crimeDataBeanJavaRDD;
@@ -121,7 +236,7 @@ public class CrimeDataStore implements DataStore, Serializable{
     public List<Row> getList(String sqlQuery){
 
         try{
-            return sqlContext.sql(sqlQuery).collectAsList();
+            return instance.getSqlContext().sql(sqlQuery).collectAsList();
         }
         catch (Exception e){
             e.printStackTrace();
@@ -132,7 +247,7 @@ public class CrimeDataStore implements DataStore, Serializable{
     public DataFrame queryDataSet(String sqlQuery){
 
         try{
-            DataFrame df=sqlContext.sql(sqlQuery);
+            DataFrame df=instance.getSqlContext().sql(sqlQuery);
             return df;
         }
         catch (Exception e){
@@ -153,11 +268,6 @@ public class CrimeDataStore implements DataStore, Serializable{
         return input;
     }
 
-    public void saveTable(DataFrame df,String tableName){
-        preprocessedDf=df;
-        preprocessedDf.registerTempTable(tableName);
-        cache_data(1);
-    }
 
     public String getTableName() {
         return initailtableName;

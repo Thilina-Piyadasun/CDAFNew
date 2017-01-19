@@ -10,6 +10,7 @@ import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 
+import java.io.Serializable;
 import java.util.List;
 
 ;
@@ -17,7 +18,7 @@ import java.util.List;
 /**
  * Created by acer on 11/19/2016.
  */
-public interface DataStore {
+public interface DataStore extends Serializable {
 
     Config insatnce=Config.getInstance();
     SparkConf conf = insatnce.getConf();
@@ -52,4 +53,6 @@ public interface DataStore {
     String getTableName() ;
 
     void setTableName(String prepTableName) ;
+
+
 }

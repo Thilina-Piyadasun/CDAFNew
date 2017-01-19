@@ -2,6 +2,9 @@ package org.abithana.preprocessor.impl;
 
 import org.abithana.beans.CrimeDataBeanWithTime;
 import org.abithana.beans.CrimeTestBeanWithTIme;
+import org.abithana.beans.PopulationBean;
+import org.abithana.ds.CrimeDataStore;
+import org.abithana.ds.PopulationDataStore;
 import org.abithana.utill.Config;
 import org.abithana.utill.CrimeUtil;
 import org.apache.commons.net.ntp.TimeStamp;
@@ -12,6 +15,7 @@ import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,6 +25,7 @@ import java.util.regex.Pattern;
  */
 public class Preprocessing implements Serializable{
 
+    Config instance=Config.getInstance();
     String[] fetureSet[];
     int rowLimit;
 
@@ -88,6 +93,7 @@ public class Preprocessing implements Serializable{
     public DataFrame getTimeIndexedDF(DataFrame df,String columnWithTime){
 
         DataFrame myDataframe=df;
+        myDataframe.show(30);
         try{
             CrimeUtil crimeUtil=new CrimeUtil();
             boolean colexists=crimeUtil.isColExists(df,columnWithTime);
@@ -99,15 +105,15 @@ public class Preprocessing implements Serializable{
 
                         String s;
                         String year;
-                        if(row.get(0).getClass()== java.sql.Timestamp.class){
-                           s = ""+row.getTimestamp(0);
+                        if(row.getAs("dateAndTime").getClass()== java.sql.Timestamp.class){
+                           s = ""+row.getAs("dateAndTime").toString();
                             String dates[]=s.split(" ");
                             String year_mnth_day=dates[0];
                             year= year_mnth_day.substring(0,4);
 
                         }
                         else{
-                             s = ""+row.getString(0);
+                             s = ""+row.getAs("dateAndTime");
                             String dates[]=s.split(" ");
                             String year_mnth_day=dates[0];
                             year= year_mnth_day.substring(year_mnth_day.length()-4,year_mnth_day.length());
@@ -126,18 +132,17 @@ public class Preprocessing implements Serializable{
                         int date=Integer.parseInt(year);
                         CrimeDataBeanWithTime crimeDataBean;
 
-                        if(row.getString(1).equals("LARCENY/THEFT")||row.getString(1).equals("NON-CRIMINAL")||row.getString(1).equals("ASSAULT")||row.getString(1).equals("VEHICLE THEFT")||row.getString(1).equals("BURGLARY")||row.getString(1).equals("VANDALISM")||row.getString(1).equals("WARRANTS")||row.getString(1).equals("SUSPICIOUS OCC")||row.getString(1).equals("OTHER OFFENSES")){
+                        if(row.getAs("category").equals("LARCENY/THEFT")||row.getAs("category").equals("NON-CRIMINAL")||row.getAs("category").equals("ASSAULT")|row.getAs("category").equals("VEHICLE THEFT")||row.getAs("category").equals("BURGLARY")||row.getAs("category").equals("VANDALISM")||row.getAs("category").equals("WARRANTS")||row.getAs("category").equals("SUSPICIOUS OCC")||row.getAs("category").equals("OTHER OFFENSES")){
 
-                            crimeDataBean = new CrimeDataBeanWithTime(date,time,row.getString(1),row.getString(3),row.getString(4),row.getString(5),row.getDouble(7),row.getDouble(8));
+                            crimeDataBean = new CrimeDataBeanWithTime(date,time,row.getAs("category"),row.getAs("dayOfWeek"),row.getAs("pdDistrict"),row.getAs("resolution"),row.getAs("latitude"),row.getAs("longitude"));
                         }
                         else{
-                            crimeDataBean = new CrimeDataBeanWithTime(date,time,"MINOR CRIMES",row.getString(3),row.getString(4),row.getString(5),row.getDouble(7),row.getDouble(8));
-
+                            crimeDataBean = new CrimeDataBeanWithTime(date,time,"MINOR CRIMES",row.getAs("category"),row.getAs("pdDistrict"),row.getAs("resolution"),row.getAs("latitude"),row.getAs("longitude"));
                         }
                          return crimeDataBean;
                     }
                 });
-                myDataframe = Config.getInstance().getSqlContext().createDataFrame(crimeDataBeanJavaRDD, CrimeDataBeanWithTime.class);
+                myDataframe = instance.getSqlContext().createDataFrame(crimeDataBeanJavaRDD, CrimeDataBeanWithTime.class);
             }
         }
         catch (Exception e){
@@ -156,6 +161,8 @@ public class Preprocessing implements Serializable{
             CrimeUtil crimeUtil=new CrimeUtil();
             boolean colexists=crimeUtil.isColExists(df,columnWithTime);
 
+            CrimeDataStore dataStore=CrimeDataStore.getInstance();
+
             if(colexists) {
 
                 JavaRDD<CrimeTestBeanWithTIme> crimeTestBeanJavaRDD = df.javaRDD().map(new Function<Row, CrimeTestBeanWithTIme>() {
@@ -164,14 +171,14 @@ public class Preprocessing implements Serializable{
                         String s;
                         String year;
                         if(row.get(0).getClass()== java.sql.Timestamp.class){
-                            s = ""+row.getTimestamp(0);
+                            s = ""+row.getAs(dataStore.getDatesCol()).toString();
                             String dates[]=s.split(" ");
                             String year_mnth_day=dates[0];
                             year= year_mnth_day.substring(0,4);
 
                         }
                         else{
-                            s = ""+row.getString(0);
+                            s = ""+row.getAs(dataStore.getDatesCol()).toString();
                             String dates[]=s.split(" ");
                             String year_mnth_day=dates[0];
                             year= year_mnth_day.substring(year_mnth_day.length()-4,year_mnth_day.length());
@@ -188,18 +195,59 @@ public class Preprocessing implements Serializable{
                         }
 
                         int date=Integer.parseInt(year);
-                        CrimeTestBeanWithTIme crimeTestBean = new CrimeTestBeanWithTIme(date,time,row.getString(2),row.getString(3),row.getString(4),row.getDouble(6),row.getDouble(7));
+                        CrimeTestBeanWithTIme crimeTestBean = new CrimeTestBeanWithTIme(date,time,row.getAs(dataStore.getDayOfWeekCol()),row.getAs(dataStore.getPdDistrictCol()),row.getAs(dataStore.getResolution()),row.getAs(dataStore.getLatitudeCol()),row.getAs(dataStore.getLongitudeCol()));
 
                         return crimeTestBean;
                     }
                 });
 
-                myDataframe = Config.getInstance().getSqlContext().createDataFrame(crimeTestBeanJavaRDD, CrimeTestBeanWithTIme.class);
+                myDataframe = instance.getSqlContext().createDataFrame(crimeTestBeanJavaRDD, CrimeTestBeanWithTIme.class);
             }
         }
         catch (Exception e){
             e.printStackTrace();
         }
         return myDataframe;
+    }
+
+    public DataFrame integratePopulationData(String populatinTableName,String preproessTblName){
+
+        DataFrame crimeDf=instance.getSqlContext().sql("select * from "+preproessTblName);
+        boolean isTestData=true;
+        for(String s:crimeDf.columns()){
+            if(s.equals("category")){
+                isTestData=false;
+            }
+        }
+
+        if(isTestData){
+           return collectAsTestSet(populatinTableName,preproessTblName);
+        }
+
+         return  collectAsTrainSet(populatinTableName, preproessTblName);
+    }
+
+    public DataFrame collectAsTrainSet(String populatinTableName,String preproessTblName){
+        try {
+            DataFrame df = instance.getSqlContext().sql("SELECT t2.population,t1.dayOfWeek,t1.category,t1.pdDistrict,t1.time,t1.year, t1.latitude,t1.longitude  FROM " + preproessTblName + "  t1 JOIN " + populatinTableName + " t2 ON  t1.latitude >= t2.latitude-0.01 AND  t1.latitude <= t2.latitude+0.01 and t1.longitude >= t2.longitude-0.01 AND t1.longitude <= t2.longitude+0.01");
+            return df;
+        }
+        catch (Exception e){
+            System.out.println("Exception in collectAsTrainSet method in Preprocessing");
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public DataFrame collectAsTestSet(String populatinTableName,String preproessTblName){
+        try {
+            DataFrame df = instance.getSqlContext().sql("SELECT t2.population,t1.dayOfWeek,t1.pdDistrict,t1.time,t1.year, t1.latitude,t1.longitude  FROM " + preproessTblName + "  t1 JOIN " + populatinTableName + " t2 ON  t1.latitude >= t2.latitude-0.01 AND  t1.latitude <= t2.latitude+0.01 and t1.longitude >= t2.longitude-0.01 AND t1.longitude <= t2.longitude+0.01");
+            return df;
+        }
+        catch (Exception e){
+            System.out.println("Exception in collectAsTestSet method in Preprocessing");
+            e.printStackTrace();
+        }
+        return null;
     }
 }

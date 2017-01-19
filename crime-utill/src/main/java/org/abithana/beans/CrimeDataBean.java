@@ -1,28 +1,29 @@
 package org.abithana.beans;
 
-import org.apache.commons.net.ntp.TimeStamp;
-
+import java.io.Serializable;
 import java.sql.Timestamp;
 
 /**
  * Created by acer on 11/20/2016.
  */
-public class CrimeDataBean implements DataStoreBeans {
+public class CrimeDataBean implements Serializable {
 
-    private Timestamp time;
+    private Timestamp dateAndTime;
     private String dayOfWeek;
     private String category;
     private String pdDistrict;
-    private double x;
-    private double y;
+    private String resolution;
+    private double latitude;
+    private double longitude;
 
-    public CrimeDataBean(Timestamp time, String category,String dayOfWeek, String pdDistrict, double x, double y) {
-
+    public CrimeDataBean(Timestamp dateAndTime, String category,String dayOfWeek, String pdDistrict,String resolution, double latitude, double longitude) {
+        this.dateAndTime=dateAndTime;
         this.dayOfWeek = dayOfWeek;
         this.category = category;
         this.pdDistrict = pdDistrict;
-        this.x = x;
-        this.y = y;
+        this.resolution=resolution;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     public String getDayOfWeek() {
@@ -49,27 +50,36 @@ public class CrimeDataBean implements DataStoreBeans {
         this.pdDistrict = pdDistrict;
     }
 
-    public double getX() {
-        return x;
+
+    public double getLongitude() {
+        return longitude;
     }
 
-    public void setX(double x) {
-        this.x = x;
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
     }
 
-    public double getY() {
-        return y;
+    public Timestamp getDateAndTime() {
+        return dateAndTime;
     }
 
-    public void setY(double y) {
-        this.y = y;
+    public void setDateAndTime(Timestamp dateAndTime) {
+        this.dateAndTime = dateAndTime;
     }
 
-    public Timestamp getTime() {
-        return time;
+    public double getLatitude() {
+        return latitude;
     }
 
-    public void setTime(Timestamp time) {
-        this.time = time;
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public String getResolution() {
+        return resolution;
+    }
+
+    public void setResolution(String resolution) {
+        this.resolution = resolution;
     }
 }

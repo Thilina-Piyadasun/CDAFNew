@@ -12,9 +12,9 @@ public class CrimeDataBeanWithTime implements Serializable {
     private String DayOfWeek;
     private String Category;
     private String PdDistrict;
-    private String Resolution;
-    private double X;
-    private double Y;
+    private String resolution;
+    private double latitude;
+    private double longitude;
 
     public CrimeDataBeanWithTime(int year,int time, String category, String dayOfWeek, String pdDistrict,String resolution, double x, double y) {
         this.year=year;
@@ -22,9 +22,9 @@ public class CrimeDataBeanWithTime implements Serializable {
         this.Category = category;
         this.DayOfWeek = dayOfWeek;
         this.PdDistrict = pdDistrict;
-        this.Resolution=resolution;
-        this.X = x;
-        this.Y = y;
+        this.resolution =resolution;
+        this.latitude = x;
+        this.longitude = y;
     }
 
     public String getDayOfWeek() {
@@ -51,28 +51,12 @@ public class CrimeDataBeanWithTime implements Serializable {
         this.PdDistrict = pdDistrict;
     }
 
-    public double getX() {
-        return X;
-    }
-
-    public void setX(double x) {
-        this.X = x;
-    }
-
-    public double getY() {
-        return Y;
-    }
-
-    public void setY(double y) {
-        this.Y = y;
-    }
-
     public void setTime(int time) {
         Time = time;
     }
 
     public void setResolution(String resolution) {
-        Resolution = resolution;
+        this.resolution = resolution;
     }
 
     public int getTime() {
@@ -80,7 +64,7 @@ public class CrimeDataBeanWithTime implements Serializable {
     }
 
     public String getResolution() {
-        return Resolution;
+        return resolution;
     }
 
     public int getYear() {
@@ -89,5 +73,21 @@ public class CrimeDataBeanWithTime implements Serializable {
 
     public void setYear(int year) {
         this.year = year;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
     }
 }

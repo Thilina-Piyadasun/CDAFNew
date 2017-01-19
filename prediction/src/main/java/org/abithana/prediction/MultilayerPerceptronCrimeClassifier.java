@@ -1,13 +1,19 @@
 package org.abithana.prediction;
 
 
+import org.abithana.utill.Config;
 import org.apache.spark.ml.Pipeline;
+import org.apache.spark.ml.PipelineModel;
 import org.apache.spark.ml.PipelineStage;
 import org.apache.spark.ml.classification.MultilayerPerceptronClassificationModel;
 import org.apache.spark.ml.classification.MultilayerPerceptronClassifier;
 import org.apache.spark.ml.classification.RandomForestClassifier;
 import org.apache.spark.ml.feature.*;
 import org.apache.spark.sql.DataFrame;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 
 /**
  * Created by Thilina on 8/13/2016.
@@ -30,7 +36,7 @@ public class MultilayerPerceptronCrimeClassifier extends ClassificationModel {
     }
 
 
-    Pipeline getPipeline(DataFrame trainData, DataFrame testData){
+    Pipeline getPipeline(DataFrame trainData){
 
         StringIndexerModel labelIndexer = new StringIndexer()
                 .setInputCol(label)
@@ -45,11 +51,11 @@ public class MultilayerPerceptronCrimeClassifier extends ClassificationModel {
                 .setMaxCategories(40)
                 .fit(trainData);
 
-        VectorIndexerModel featureIndexerTest = new VectorIndexer()
+       /* VectorIndexerModel featureIndexerTest = new VectorIndexer()
                 .setInputCol(generated_feature_col_name)
                 .setOutputCol(indexedFeatures)
                 .setMaxCategories(40)
-                .fit(testData);
+                .fit(testData);*/
 
         MultilayerPerceptronClassifier rf = new MultilayerPerceptronClassifier()
                 .setPredictionCol(prediction)
@@ -72,5 +78,7 @@ public class MultilayerPerceptronCrimeClassifier extends ClassificationModel {
         return pipeline;
 
     }
+
+
 
 }

@@ -36,7 +36,7 @@ public class RandomForestCrimeClassifier extends ClassificationModel {
     }
 
 
-    Pipeline getPipeline(DataFrame trainData, DataFrame testData){
+    Pipeline getPipeline(DataFrame trainData){
 
         StringIndexerModel labelIndexer = new StringIndexer()
                 .setInputCol(label)
@@ -51,11 +51,11 @@ public class RandomForestCrimeClassifier extends ClassificationModel {
                 .setMaxCategories(40)
                 .fit(trainData);
 
-        VectorIndexerModel featureIndexerTest = new VectorIndexer()
+        /*VectorIndexerModel featureIndexerTest = new VectorIndexer()
                 .setInputCol(generated_feature_col_name)
                 .setOutputCol(indexedFeatures)
                 .setMaxCategories(40)
-                .fit(testData);
+                .fit(testData);*/
 
         RandomForestClassifier rf = new RandomForestClassifier()
                 .setLabelCol(indexedLabel)
