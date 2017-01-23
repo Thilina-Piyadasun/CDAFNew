@@ -9,6 +9,7 @@ public class CrimeTestBeanWithTIme implements Serializable {
 
 
     private int year;
+    private int month;
     private int Time;
     private String DayOfWeek;
     private String PdDistrict;
@@ -16,8 +17,9 @@ public class CrimeTestBeanWithTIme implements Serializable {
     private double latitude;
     private double longitude;
 
-    public CrimeTestBeanWithTIme(int year,int time, String dayOfWeek, String pdDistrict,String resolution, double latitude, double longitude) {
+    public CrimeTestBeanWithTIme(int year,int month,int time, String dayOfWeek, String pdDistrict,String resolution, double latitude, double longitude) {
         this.year=year;
+        this.month=month;
         this.Time =time;
         this.DayOfWeek = dayOfWeek;
         this.PdDistrict = pdDistrict;
@@ -80,5 +82,13 @@ public class CrimeTestBeanWithTIme implements Serializable {
 
     public void setLongitude(double longitude) {
         this.longitude = longitude;
+    }
+
+    public int getMonth() {
+        return month;
+    }
+
+    public void setMonth(int month) {
+        this.month = month;
     }
 }

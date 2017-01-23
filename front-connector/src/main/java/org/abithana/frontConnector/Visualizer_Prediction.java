@@ -94,7 +94,7 @@ public class Visualizer_Prediction {
 
     public void predict(){
 
-        String[] featureCol = {"dayOfWeek", "pdDistrict","time","year","population"};
+        String[] featureCol = {"dayOfWeek", "pdDistrict","time","year","month","population"};
         //String[] featureCol = {"dayOfWeek", "pdDistrict","time","year"};
         String label = "category";
         int[] layers = new int[]{featureCol.length,500,39};

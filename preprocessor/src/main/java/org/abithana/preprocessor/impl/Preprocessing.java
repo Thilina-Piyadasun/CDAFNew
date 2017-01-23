@@ -103,22 +103,48 @@ public class Preprocessing implements Serializable{
                     public CrimeDataBeanWithTime call(Row row) {
 
                         String s;
-                        String year;
+                        int year=0;
+                        int month=0;
+
                         if(row.getAs("dateAndTime").getClass()== java.sql.Timestamp.class){
                            s = ""+row.getAs("dateAndTime").toString();
                             String dates[]=s.split(" ");
                             String year_mnth_day=dates[0];
-                            year= year_mnth_day.substring(0,4);
-                            //year= year_mnth_day.substring(year_mnth_day.length()-4,year_mnth_day.length());
+                            //year= year_mnth_day.substring(0,4);
+                            String year_string= year_mnth_day.substring(year_mnth_day.length()-4,year_mnth_day.length());
+                            if(isNumeric(year_string)) {
+                                year=Integer.parseInt(year_string);
+                                String arr[] = year_mnth_day.split("/");
+                                if(isNumeric(arr[0]))
+                                    month = Integer.parseInt(arr[0]);
+                            }
+                            else{
+                                if(isNumeric(year_mnth_day.substring(0,4)))
+                                    year=Integer.parseInt(year_mnth_day.substring(0,4));
+                                String arr[] = year_mnth_day.split("/");
+                                if(isNumeric(arr[2]))
+                                    month = Integer.parseInt(arr[2]);
+                             }
                         }
-                        else{
-                             s = ""+row.getAs("dateAndTime");
-                            String dates[]=s.split(" ");
-                            String year_mnth_day=dates[0];
-                            //year= year_mnth_day.substring(year_mnth_day.length()-4,year_mnth_day.length());
-                            year= year_mnth_day.substring(0,4);
-                        }
+                        else {
+                            s = "" + row.getAs("dateAndTime");
+                            String dates[] = s.split(" ");
+                            String year_mnth_day = dates[0];
 
+                            String year_string = year_mnth_day.substring(year_mnth_day.length() - 4, year_mnth_day.length());
+                            if (isNumeric(year_string)) {
+                                year = Integer.parseInt(year_string);
+                                String arr[] = year_mnth_day.split("/");
+                                if (isNumeric(arr[0]))
+                                    month = Integer.parseInt(arr[0]);
+                            } else {
+                                if (isNumeric(year_mnth_day.substring(0, 4)))
+                                    year = Integer.parseInt(year_mnth_day.substring(0, 4));
+                                String arr[] = year_mnth_day.split("/");
+                                if (isNumeric(arr[2]))
+                                    month = Integer.parseInt(arr[2]);
+                            }
+                        }
 
                         Pattern pattern = Pattern.compile("(\\d{1,2})[:]\\d{1,2}[^:-]");
                         // Now create matcher object.
@@ -129,20 +155,20 @@ public class Preprocessing implements Serializable{
                             time = Integer.parseInt(m.group(1));
                         }
 
-                        int date=Integer.parseInt(year);
                         CrimeDataBeanWithTime crimeDataBean;
 
                         if(row.getAs("category").equals("LARCENY/THEFT")||row.getAs("category").equals("NON-CRIMINAL")||row.getAs("category").equals("ASSAULT")|row.getAs("category").equals("VEHICLE THEFT")||row.getAs("category").equals("BURGLARY")||row.getAs("category").equals("VANDALISM")||row.getAs("category").equals("WARRANTS")||row.getAs("category").equals("SUSPICIOUS OCC")||row.getAs("category").equals("OTHER OFFENSES")){
 
-                            crimeDataBean = new CrimeDataBeanWithTime(date,time,row.getAs("category"),row.getAs("dayOfWeek"),row.getAs("pdDistrict"),row.getAs("resolution"),row.getAs("latitude"),row.getAs("longitude"));
+                            crimeDataBean = new CrimeDataBeanWithTime(year,month,time,row.getAs("category"),row.getAs("dayOfWeek"),row.getAs("pdDistrict"),row.getAs("resolution"),row.getAs("latitude"),row.getAs("longitude"));
                         }
                         else{
-                            crimeDataBean = new CrimeDataBeanWithTime(date,time,"MINOR CRIMES",row.getAs("dayOfWeek"),row.getAs("pdDistrict"),row.getAs("resolution"),row.getAs("latitude"),row.getAs("longitude"));
+                            crimeDataBean = new CrimeDataBeanWithTime(year,month,time,"MINOR CRIMES",row.getAs("dayOfWeek"),row.getAs("pdDistrict"),row.getAs("resolution"),row.getAs("latitude"),row.getAs("longitude"));
                         }
                          return crimeDataBean;
                     }
                 });
                 myDataframe = instance.getSqlContext().createDataFrame(crimeDataBeanJavaRDD, CrimeDataBeanWithTime.class);
+                myDataframe.show(50);
             }
         }
         catch (Exception e){
@@ -151,6 +177,9 @@ public class Preprocessing implements Serializable{
         return myDataframe;
     }
 
+    public boolean isNumeric(String s) {
+        return s.matches("[-+]?\\d*\\.?\\d+");
+    }
     /*for a givn data frame it indexed the time column 1-24
     * if time column exists it convet it to 1-24 if only ate column exists convert date into time and indexed
     * */
@@ -169,21 +198,48 @@ public class Preprocessing implements Serializable{
                     public CrimeTestBeanWithTIme call(Row row) {
 
                         String s;
-                        String year;
+                        int year=0;
+                        int month=0;
+
                         if(row.get(0).getClass()== java.sql.Timestamp.class){
-                            s = ""+row.getAs(dataStore.getDatesCol()).toString();
+                            s = ""+row.get(0).toString();
                             String dates[]=s.split(" ");
                             String year_mnth_day=dates[0];
-                            year= year_mnth_day.substring(0,4);
-
+                            //year= year_mnth_day.substring(0,4);
+                            String year_string= year_mnth_day.substring(year_mnth_day.length()-4,year_mnth_day.length());
+                            if(isNumeric(year_string)) {
+                                year=Integer.parseInt(year_string);
+                                String arr[] = year_mnth_day.split("/");
+                                if(isNumeric(arr[0]))
+                                    month = Integer.parseInt(arr[0]);
+                            }
+                            else{
+                                if(isNumeric(year_mnth_day.substring(0,4)))
+                                    year=Integer.parseInt(year_mnth_day.substring(0,4));
+                                String arr[] = year_mnth_day.split("/");
+                                if(isNumeric(arr[2]))
+                                    month = Integer.parseInt(arr[2]);
+                            }
                         }
-                        else{
-                            s = ""+row.getAs(dataStore.getDatesCol()).toString();
-                            String dates[]=s.split(" ");
-                            String year_mnth_day=dates[0];
-                            year= year_mnth_day.substring(year_mnth_day.length()-4,year_mnth_day.length());
-                        }
+                        else {
+                            s = "" + row.get(0);
+                            String dates[] = s.split(" ");
+                            String year_mnth_day = dates[0];
 
+                            String year_string = year_mnth_day.substring(year_mnth_day.length() - 4, year_mnth_day.length());
+                            if (isNumeric(year_string)) {
+                                year = Integer.parseInt(year_string);
+                                String arr[] = year_mnth_day.split("/");
+                                if (isNumeric(arr[0]))
+                                    month = Integer.parseInt(arr[0]);
+                            } else {
+                                if (isNumeric(year_mnth_day.substring(0, 4)))
+                                    year = Integer.parseInt(year_mnth_day.substring(0, 4));
+                                String arr[] = year_mnth_day.split("/");
+                                if (isNumeric(arr[2]))
+                                    month = Integer.parseInt(arr[2]);
+                            }
+                        }
 
                         Pattern pattern = Pattern.compile("(\\d{1,2})[:]\\d{1,2}[^:-]");
                         // Now create matcher object.
@@ -194,8 +250,7 @@ public class Preprocessing implements Serializable{
                             time = Integer.parseInt(m.group(1));
                         }
 
-                        int date=Integer.parseInt(year);
-                        CrimeTestBeanWithTIme crimeTestBean = new CrimeTestBeanWithTIme(date,time,row.getAs(dataStore.getDayOfWeekCol()),row.getAs(dataStore.getPdDistrictCol()),row.getAs(dataStore.getResolution()),row.getAs(dataStore.getLatitudeCol()),row.getAs(dataStore.getLongitudeCol()));
+                        CrimeTestBeanWithTIme crimeTestBean = new CrimeTestBeanWithTIme(year,month,time,row.getAs(dataStore.getDayOfWeekCol()),row.getAs(dataStore.getPdDistrictCol()),row.getAs(dataStore.getResolution()),row.getAs(dataStore.getLatitudeCol()),row.getAs(dataStore.getLongitudeCol()));
 
                         return crimeTestBean;
                     }
@@ -229,7 +284,7 @@ public class Preprocessing implements Serializable{
 
     public DataFrame collectAsTrainSet(String populatinTableName,String preproessTblName){
         try {
-            DataFrame df = instance.getSqlContext().sql("SELECT t2.population,t1.dayOfWeek,t1.category,t1.pdDistrict,t1.time,t1.year, t1.latitude,t1.longitude  FROM " + preproessTblName + "  t1 JOIN " + populatinTableName + " t2 ON  t1.latitude >= t2.latitude-0.01 AND  t1.latitude <= t2.latitude+0.01 and t1.longitude >= t2.longitude-0.01 AND t1.longitude <= t2.longitude+0.01");
+            DataFrame df = instance.getSqlContext().sql("SELECT t2.population,t1.dayOfWeek,t1.category,t1.pdDistrict,t1.time,t1.year,t1.month, t1.latitude,t1.longitude  FROM " + preproessTblName + "  t1 JOIN " + populatinTableName + " t2 ON  t1.latitude >= t2.latitude-0.01 AND  t1.latitude <= t2.latitude+0.01 and t1.longitude >= t2.longitude-0.01 AND t1.longitude <= t2.longitude+0.01");
             return df;
         }
         catch (Exception e){
@@ -241,7 +296,7 @@ public class Preprocessing implements Serializable{
 
     public DataFrame collectAsTestSet(String populatinTableName,String preproessTblName){
         try {
-            DataFrame df = instance.getSqlContext().sql("SELECT t2.population,t1.dayOfWeek,t1.pdDistrict,t1.time,t1.year, t1.latitude,t1.longitude  FROM " + preproessTblName + "  t1 JOIN " + populatinTableName + " t2 ON  t1.latitude >= t2.latitude-0.01 AND  t1.latitude <= t2.latitude+0.01 and t1.longitude >= t2.longitude-0.01 AND t1.longitude <= t2.longitude+0.01");
+            DataFrame df = instance.getSqlContext().sql("SELECT t2.population,t1.dayOfWeek,t1.pdDistrict,t1.time,t1.month,t1.year, t1.latitude,t1.longitude  FROM " + preproessTblName + "  t1 JOIN " + populatinTableName + " t2 ON  t1.latitude >= t2.latitude-0.01 AND  t1.latitude <= t2.latitude+0.01 and t1.longitude >= t2.longitude-0.01 AND t1.longitude <= t2.longitude+0.01");
             return df;
         }
         catch (Exception e){

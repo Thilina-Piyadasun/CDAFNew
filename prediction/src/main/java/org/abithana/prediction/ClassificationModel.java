@@ -9,7 +9,6 @@ import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator;
 import org.apache.spark.ml.feature.VectorIndexer;
 import org.apache.spark.ml.feature.VectorIndexerModel;
 import org.apache.spark.ml.param.ParamMap;
-import org.apache.spark.ml.tree.impl.RandomForest;
 import org.apache.spark.ml.tuning.CrossValidator;
 import org.apache.spark.ml.tuning.CrossValidatorModel;
 import org.apache.spark.ml.tuning.ParamGridBuilder;
@@ -18,8 +17,6 @@ import org.apache.spark.mllib.linalg.Matrix;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +31,7 @@ public abstract class ClassificationModel implements Serializable{
     String indexedFeatures="indexedFeatures";
     String prediction ="prediction";
     String predictedLabel="predictedLabel";
-    Config config=Config.getInstance();
+    Config instance =Config.getInstance();
     String[] feature_columns;
     String[] testFeature_columns;
     String label;
@@ -185,7 +182,7 @@ public abstract class ClassificationModel implements Serializable{
         }
     }
 
-    public DataFrame predict(DataFrame test){
+    public void predict(DataFrame test){
         try{
             test.show(30);
             Model model;
@@ -201,23 +198,43 @@ public abstract class ClassificationModel implements Serializable{
 
             if(model!=null){
 
-                DataFrame predictions = model.transform(testData);
-                predictions.registerTempTable("prediction");
+                DataFrame predictions_W = model.transform(testData);
+                predictions_W.registerTempTable("prediction");
 
                 String colAsString=getOutputColsAsString();
 
-                predictions=Config.getInstance().getSqlContext().sql("select "+colAsString+" from prediction");
-                predictions.show(40);
-                return predictions;
+                predictions_W=Config.getInstance().getSqlContext().sql("select "+colAsString+" from prediction");
+                predictions_W.show(40);
+
+                if(savePrediction(predictions_W)){
+                    instance.getSqlContext().dropTempTable("prediction");
+                    instance.getSqlContext().dropTempTable("test");
+                }
             }
         }
         catch (Exception e){
             e.printStackTrace();
         }
 
-        return null;
+
     }
 
+    public boolean savePrediction(DataFrame dataFrame){
+        try {
+            dataFrame
+                    // place all data in a single partition
+                    .coalesce(1)
+                    .write().format("com.databricks.spark.csv")
+                    .option("header", "true")
+                    .mode("overwrite")
+                    .save("./prediction.csv");
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
 
     private void evaluationProcess(DataFrame evaluations){
 
@@ -229,7 +246,7 @@ public abstract class ClassificationModel implements Serializable{
 
             Matrix confusion=metrics.confusionMatrix();
 
-            DataFrame  evaluation= config.getSqlContext().sql("select distinct category, avg(indexedLabel) as index  from predictions group by category");
+            DataFrame  evaluation= instance.getSqlContext().sql("select distinct category, avg(indexedLabel) as index  from predictions group by category");
             List<Row> lli=evaluation.collectAsList();
 
             for(Row r:lli){

@@ -8,6 +8,7 @@ import java.io.Serializable;
 public class CrimeDataBeanWithTime implements Serializable {
 
     private int year;
+    private int month;
     private int Time;
     private String DayOfWeek;
     private String Category;
@@ -16,8 +17,9 @@ public class CrimeDataBeanWithTime implements Serializable {
     private double latitude;
     private double longitude;
 
-    public CrimeDataBeanWithTime(int year,int time, String category, String dayOfWeek, String pdDistrict,String resolution, double x, double y) {
+    public CrimeDataBeanWithTime(int year,int month,int time, String category, String dayOfWeek, String pdDistrict,String resolution, double x, double y) {
         this.year=year;
+        this.month=month;
         this.Time =time;
         this.Category = category;
         this.DayOfWeek = dayOfWeek;
@@ -89,5 +91,13 @@ public class CrimeDataBeanWithTime implements Serializable {
 
     public void setLongitude(double longitude) {
         this.longitude = longitude;
+    }
+
+    public int getMonth() {
+        return month;
+    }
+
+    public void setMonth(int month) {
+        this.month = month;
     }
 }

@@ -83,7 +83,7 @@ public class Checker implements Serializable{
             ArrayList<Double> latitudes = new ArrayList<Double>();
             ArrayList<Double> longitudes = new ArrayList<Double>();
 
-            // to keep id of cencustract
+            // to keep id of cencus tract
             long id = 0;
 
             //New census tract object
