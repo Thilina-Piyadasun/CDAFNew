@@ -15,6 +15,7 @@ public class PreprocessorFacade {
     Preprocessing preprocessing=new Preprocessing();
     Discretizer discretizer=new Discretizer();
 
+
     public DataFrame handelMissingValues(DataFrame df){
         System.out.println("Running missing value handling");
         return missingDataHandler.deleteRows(df);
@@ -57,11 +58,13 @@ public class PreprocessorFacade {
     }
 
     DataFrame createFeatureFrame(DataFrame f1){
+
         return preprocessing.createFeatureFrame(f1);
 
     }
 
     DataFrame removeDupliates(DataFrame f1){
+        //TODO implement
         return preprocessing.removeDupliates(f1);
 
     }

@@ -62,12 +62,12 @@ public class Preprocessing implements Serializable{
     }
 
     public DataFrame createFeatureFrame(DataFrame f1){
-        return null;
+        return f1;
 
     }
 
     public DataFrame removeDupliates(DataFrame f1){
-        return null;
+        return f1;
 
     }
 
@@ -93,7 +93,6 @@ public class Preprocessing implements Serializable{
     public DataFrame getTimeIndexedDF(DataFrame df,String columnWithTime){
 
         DataFrame myDataframe=df;
-        myDataframe.show(30);
         try{
             CrimeUtil crimeUtil=new CrimeUtil();
             boolean colexists=crimeUtil.isColExists(df,columnWithTime);
@@ -110,13 +109,14 @@ public class Preprocessing implements Serializable{
                             String dates[]=s.split(" ");
                             String year_mnth_day=dates[0];
                             year= year_mnth_day.substring(0,4);
-
+                            //year= year_mnth_day.substring(year_mnth_day.length()-4,year_mnth_day.length());
                         }
                         else{
                              s = ""+row.getAs("dateAndTime");
                             String dates[]=s.split(" ");
                             String year_mnth_day=dates[0];
-                            year= year_mnth_day.substring(year_mnth_day.length()-4,year_mnth_day.length());
+                            //year= year_mnth_day.substring(year_mnth_day.length()-4,year_mnth_day.length());
+                            year= year_mnth_day.substring(0,4);
                         }
 
 
@@ -137,7 +137,7 @@ public class Preprocessing implements Serializable{
                             crimeDataBean = new CrimeDataBeanWithTime(date,time,row.getAs("category"),row.getAs("dayOfWeek"),row.getAs("pdDistrict"),row.getAs("resolution"),row.getAs("latitude"),row.getAs("longitude"));
                         }
                         else{
-                            crimeDataBean = new CrimeDataBeanWithTime(date,time,"MINOR CRIMES",row.getAs("category"),row.getAs("pdDistrict"),row.getAs("resolution"),row.getAs("latitude"),row.getAs("longitude"));
+                            crimeDataBean = new CrimeDataBeanWithTime(date,time,"MINOR CRIMES",row.getAs("dayOfWeek"),row.getAs("pdDistrict"),row.getAs("resolution"),row.getAs("latitude"),row.getAs("longitude"));
                         }
                          return crimeDataBean;
                     }

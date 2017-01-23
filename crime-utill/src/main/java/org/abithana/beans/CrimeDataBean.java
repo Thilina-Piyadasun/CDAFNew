@@ -8,7 +8,7 @@ import java.sql.Timestamp;
  */
 public class CrimeDataBean implements Serializable {
 
-    private Timestamp dateAndTime;
+    private String dateAndTime;
     private String dayOfWeek;
     private String category;
     private String pdDistrict;
@@ -16,7 +16,7 @@ public class CrimeDataBean implements Serializable {
     private double latitude;
     private double longitude;
 
-    public CrimeDataBean(Timestamp dateAndTime, String category,String dayOfWeek, String pdDistrict,String resolution, double latitude, double longitude) {
+    public CrimeDataBean(String dateAndTime, String category,String dayOfWeek, String pdDistrict,String resolution, double latitude, double longitude) {
         this.dateAndTime=dateAndTime;
         this.dayOfWeek = dayOfWeek;
         this.category = category;
@@ -59,11 +59,11 @@ public class CrimeDataBean implements Serializable {
         this.longitude = longitude;
     }
 
-    public Timestamp getDateAndTime() {
+    public String getDateAndTime() {
         return dateAndTime;
     }
 
-    public void setDateAndTime(Timestamp dateAndTime) {
+    public void setDateAndTime(String dateAndTime) {
         this.dateAndTime = dateAndTime;
     }
 

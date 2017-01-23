@@ -3,6 +3,7 @@ package org.abithana.ds;
 import org.abithana.beans.CrimeDataBean;
 import org.abithana.beans.PopulationBean;
 import org.abithana.utill.Config;
+import org.apache.commons.net.ntp.TimeStamp;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.mllib.linalg.Vector;
@@ -12,6 +13,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.storage.StorageLevel;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -106,7 +108,7 @@ public class CrimeDataStore implements Serializable{
         List<CrimeDataBean> crimeDataBeanList = input.javaRDD().map(new Function<Row, CrimeDataBean>() {
             public CrimeDataBean call(Row row) {
 
-                CrimeDataBean crimeDataBean=new CrimeDataBean(row.getAs(datesCol),row.getAs(categoryCol),row.getAs(dayOfWeekCol),row.getAs(pdDistrictCol),row.getAs(resolution),row.getAs(latitudeCol),row.getAs(longitudeCol));
+                CrimeDataBean crimeDataBean=new CrimeDataBean(""+row.getAs(datesCol),row.getAs(categoryCol),row.getAs(dayOfWeekCol),row.getAs(pdDistrictCol),row.getAs(resolution),row.getAs(latitudeCol),row.getAs(longitudeCol));
                 return crimeDataBean;
             }
         }).collect();

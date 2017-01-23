@@ -10,9 +10,9 @@ public class PrescriptionDataBean implements Serializable{
     private int categoryWeight;
     private double lat;
     private double lon;
-    private int tractID;
+    private long tractID;
 
-    public PrescriptionDataBean(int categoryWeight, double lat, double lon, int tractID) {
+    public PrescriptionDataBean(int categoryWeight, double lat, double lon, long tractID) {
         this.categoryWeight = categoryWeight;
         this.lat = lat;
         this.lon = lon;
@@ -43,11 +43,11 @@ public class PrescriptionDataBean implements Serializable{
         this.lon = lon;
     }
 
-    public int getTractID() {
+    public long getTractID() {
         return tractID;
     }
 
-    public void setTractID(int tractID) {
+    public void setTractID(long tractID) {
         this.tractID = tractID;
     }
 }

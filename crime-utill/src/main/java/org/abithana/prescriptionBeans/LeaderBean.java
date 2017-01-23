@@ -11,11 +11,11 @@ public class LeaderBean implements Serializable {
 
     private double lat;
     private double lon;
-    private int LeaderTract;
+    private long LeaderTract;
     private int leaderWork;
-    private List<Integer> followers=new ArrayList<>();
+    private List<Long> followers=new ArrayList<>();
 
-    public LeaderBean(double lat, double lon, int leaderTract, int leaderWork) {
+    public LeaderBean(double lat, double lon, long leaderTract, int leaderWork) {
         this.lat = lat;
         this.lon = lon;
         LeaderTract = leaderTract;
@@ -38,7 +38,7 @@ public class LeaderBean implements Serializable {
         this.lon = lon;
     }
 
-    public int getLeaderTract() {
+    public long getLeaderTract() {
         return LeaderTract;
     }
 
@@ -57,11 +57,11 @@ public class LeaderBean implements Serializable {
     public void incrementLeaderWork(int followerWork) {
         leaderWork=leaderWork+followerWork;
     }
-    public List<Integer> getFollowers() {
+    public List<Long> getFollowers() {
         return followers;
     }
 
-    public void addFollower(int follower) {
+    public void addFollower(long follower) {
         followers.add(follower);
     }
 }

@@ -9,16 +9,16 @@ public class TractCentroidBean implements Serializable {
 
     private double lat;
     private double lon;
-    private int tractID;
+    private long tractID;
     private int work;
 
-    public TractCentroidBean(double lat, double lon, int tractID) {
+    public TractCentroidBean(double lat, double lon, long tractID) {
         this.lat = lat;
         this.lon = lon;
         this.tractID = tractID;
     }
 
-    public TractCentroidBean(double lat, double lon, int tractID, int work) {
+    public TractCentroidBean(double lat, double lon, long tractID, int work) {
         this.lat = lat;
         this.lon = lon;
         this.tractID = tractID;
@@ -41,11 +41,11 @@ public class TractCentroidBean implements Serializable {
         this.lon = lon;
     }
 
-    public int getTractID() {
+    public long getTractID() {
         return tractID;
     }
 
-    public void setTractID(int tractID) {
+    public void setTractID(long tractID) {
         this.tractID = tractID;
     }
 

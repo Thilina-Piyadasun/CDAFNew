@@ -4,9 +4,7 @@ import org.abithana.ds.CrimeDataStore;
 import org.abithana.ds.DataStore;
 import org.abithana.ds.PopulationDataStore;
 import org.abithana.ds.PreprocessedCrimeDataStore;
-import org.abithana.prediction.ClassificationModel;
-import org.abithana.prediction.Evaluation;
-import org.abithana.prediction.NaiveBaysianCrimeClassifier;
+import org.abithana.prediction.*;
 import org.abithana.preprocessor.facade.PreprocessorFacade;
 import org.abithana.utill.Config;
 import org.apache.spark.sql.DataFrame;
@@ -100,7 +98,9 @@ public class Visualizer_Prediction {
         //String[] featureCol = {"dayOfWeek", "pdDistrict","time","year"};
         String label = "category";
         int[] layers = new int[]{featureCol.length,500,39};
-        NaiveBaysianCrimeClassifier rf=new NaiveBaysianCrimeClassifier(featureCol,label);
+       // MultilayerPerceptronCrimeClassifier rf=new MultilayerPerceptronCrimeClassifier(featureCol,label,layers,1000,1111,10);
+       NaiveBaysianCrimeClassifier rf=new NaiveBaysianCrimeClassifier(featureCol,label);
+        //RandomForestCrimeClassifier rf=new RandomForestCrimeClassifier(featureCol,label,20,1000);
         try{
             Config instance=Config.getInstance();
             DataFrame df=instance.getSqlContext().read()
@@ -122,7 +122,8 @@ public class Visualizer_Prediction {
             }
             f2.registerTempTable("test");
             f2=preprocessorFacade.integratePopulationData(populationDataStore.getTableName(),"test");
-            rf.train_crossValidatorModel(preProcesedDataStore.getDataFrame(), 0.8, 10);
+            rf.train_pipelineModel(preProcesedDataStore.getDataFrame(), 0.8);
+           // rf.train_crossValidatorModel(preProcesedDataStore.getDataFrame(), 0.8,10);
 
             rf.predict(f2);
             List<Evaluation> list=rf.getEvaluationResult();

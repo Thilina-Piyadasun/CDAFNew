@@ -42,7 +42,15 @@ public class MultilayerPerceptronCrimeClassifier extends ClassificationModel {
                 .setInputCol(label)
                 .setOutputCol(indexedLabel)
                 .fit(trainData);
-
+        try {
+            labelIndexer.write().overwrite().save("models\\label");
+        } catch (IOException e) {
+            System.out.println("====================================");
+            System.out.println("CANNOT SAVE LABEL INDEXER");
+            System.out.println("====================================");
+            e.printStackTrace();
+        }
+        System.out.println("label indexer saved");
         // Automatically identify categorical features, and index them.
         // Set maxCategories so features with > 4 distinct values are treated as continuous.
         VectorIndexerModel featureIndexer = new VectorIndexer()
@@ -51,11 +59,15 @@ public class MultilayerPerceptronCrimeClassifier extends ClassificationModel {
                 .setMaxCategories(40)
                 .fit(trainData);
 
-       /* VectorIndexerModel featureIndexerTest = new VectorIndexer()
-                .setInputCol(generated_feature_col_name)
-                .setOutputCol(indexedFeatures)
-                .setMaxCategories(40)
-                .fit(testData);*/
+        try {
+            featureIndexer.write().overwrite().save("models\\vector");
+        } catch (IOException e) {
+            System.out.println("====================================");
+            System.out.println("CANNOT SAVE FEATURE INDEXER");
+            System.out.println("====================================");
+            e.printStackTrace();
+        }
+        System.out.println("FEATURE indexer saved");
 
         MultilayerPerceptronClassifier rf = new MultilayerPerceptronClassifier()
                 .setPredictionCol(prediction)
@@ -66,15 +78,43 @@ public class MultilayerPerceptronCrimeClassifier extends ClassificationModel {
                 .setLabelCol(indexedLabel)
                 .setFeaturesCol(indexedFeatures)
                 .setSeed(1100);
-
+        try {
+            featureIndexer.write().overwrite().save("models\\naivebays");
+        } catch (IOException e) {
+            System.out.println("====================================");
+            System.out.println("CANNOT SAVE Multilayer perceptron classifier ");
+            System.out.println("====================================");
+            e.printStackTrace();
+        }
+        System.out.println("Multilayer perceptron  saved");
         // Convert indexed labels back to original labels.
         IndexToString labelConverter = new IndexToString()
                 .setInputCol(prediction)
                 .setOutputCol(predictedLabel)
                 .setLabels(labelIndexer.labels());
+        try {
+            featureIndexer.write().overwrite().save("models\\IndexToString");
+        } catch (IOException e) {
+            System.out.println("====================================");
+            System.out.println("CANNOT SAVE IndexToString ");
+            System.out.println("====================================");
+            e.printStackTrace();
+        }
+        System.out.println("IndexToString saved");
 
         Pipeline pipeline = new Pipeline()
                 .setStages(new PipelineStage[] {labelIndexer, featureIndexer, rf, labelConverter});
+
+        try {
+            featureIndexer.write().overwrite().save("models\\Pipeline");
+        } catch (IOException e) {
+            System.out.println("====================================");
+            System.out.println("CANNOT SAVE Pipeline ");
+            System.out.println("====================================");
+            e.printStackTrace();
+        }
+        System.out.println("Pipeline saved");
+
         return pipeline;
 
     }

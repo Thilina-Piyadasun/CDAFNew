@@ -4,10 +4,12 @@ import org.abithana.utill.Config;
 import org.apache.spark.ml.Model;
 import org.apache.spark.ml.Pipeline;
 import org.apache.spark.ml.PipelineModel;
+import org.apache.spark.ml.Transformer;
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator;
 import org.apache.spark.ml.feature.VectorIndexer;
 import org.apache.spark.ml.feature.VectorIndexerModel;
 import org.apache.spark.ml.param.ParamMap;
+import org.apache.spark.ml.tree.impl.RandomForest;
 import org.apache.spark.ml.tuning.CrossValidator;
 import org.apache.spark.ml.tuning.CrossValidatorModel;
 import org.apache.spark.ml.tuning.ParamGridBuilder;
@@ -76,16 +78,44 @@ public abstract class ClassificationModel implements Serializable{
                 .setPredictionCol(prediction)
                         // "f1", "precision", "recall", "weightedPrecision", "weightedRecall"
                 .setMetricName("precision");
-
+        try {
+            evaluator.write().overwrite().save("model\\evaluator");
+            System.out.println("evaluator");
+        }catch (Exception e){
+            System.out.println("====================================");
+            System.out.println("CANNOT SAVE evaluator");
+            System.out.println("====================================");
+            e.printStackTrace();
+        }
         CrossValidator cv = new CrossValidator()
-                // ml.Pipeline with ml.classification.RandomForestClassifier
                 .setEstimator(pipeline)
-                        // ml.evaluation.MulticlassClassificationEvaluator
                 .setEvaluator(evaluator)
                 .setEstimatorParamMaps(paramGrid)
                 .setNumFolds(folds);
 
+       /* try {
+            cv.write().overwrite().save("model\\CrossValidatorModel");
+            System.out.println("CrossValidator");
+        }catch (Exception e){
+            System.out.println("====================================");
+            System.out.println("CANNOT SAVE CrossValidator");
+            System.out.println("====================================");
+            e.printStackTrace();
+        }*/
+
+
         CrossValidatorModel model = cv.fit(trainingData);
+        PipelineModel pipelineModel= (PipelineModel) model.bestModel();
+        try {
+            pipelineModel.write().overwrite().save("model\\CrossValidatorModel");
+            System.out.println("CrossValidator");
+        }catch (Exception e){
+            System.out.println("====================================");
+            System.out.println("CANNOT SAVE CrossValidator");
+            System.out.println("====================================");
+            e.printStackTrace();
+        }
+
 
         if(model!=null){
             modelType="crossvalidation";
@@ -131,14 +161,20 @@ public abstract class ClassificationModel implements Serializable{
 
         PipelineModel model = pipeline.fit(trainingData);
 
+        Transformer tr=model.stages()[2];
+
+
         if(model!=null){
             modelType="pipeline";
-            FileOutputStream fos = new FileOutputStream("D:\\pipelineee");
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(model);
-            oos.close();
+            try{
+                model.write().overwrite().save("D:\\pipelineModel");
+            }catch (Exception e){
+                System.out.println("====================================");
+                System.out.println("CANNOT SAVE Pipeline method");
+                System.out.println("====================================");
+                e.printStackTrace();
 
-            model.write().overwrite().save("D:\\pipeline");
+            }
 
             DataFrame evaluations = model.transform(evalData);
             evaluationProcess(evaluations);
