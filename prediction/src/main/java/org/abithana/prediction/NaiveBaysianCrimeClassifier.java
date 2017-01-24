@@ -36,7 +36,6 @@ public class NaiveBaysianCrimeClassifier extends ClassificationModel {
         this.label = label;
     }
 
-
     Pipeline getPipeline(DataFrame trainData){
 
         /*
@@ -50,8 +49,7 @@ public class NaiveBaysianCrimeClassifier extends ClassificationModel {
                     .setOutputCol(indexedLabel)
                     .fit(trainData);
 
-            labelIndexer.write().overwrite().save("models\\label");
-            System.out.println("label indexer saved");
+            labelIndexer.write().overwrite().save("./models/label");
 
             // Automatically identify categorical features, and index them.
             // Set maxCategories so features with > 4 distinct values are treated as continuous.
@@ -62,14 +60,13 @@ public class NaiveBaysianCrimeClassifier extends ClassificationModel {
                     .fit(trainData);
 
             featureIndexer.write().overwrite().save("models\\vector");
-            System.out.println("FEATURE indexer saved");
 
             NaiveBayes nb = new NaiveBayes()
                     .setLabelCol(indexedLabel)
                     .setFeaturesCol(indexedFeatures);
 
             featureIndexer.write().overwrite().save("models\\naivebays");
-            System.out.println("NaiveBayes saved");
+
             // Convert indexed labels back to original labels.
             IndexToString labelConverter = new IndexToString()
                     .setInputCol(prediction)
@@ -77,7 +74,6 @@ public class NaiveBaysianCrimeClassifier extends ClassificationModel {
                     .setLabels(labelIndexer.labels());
 
             featureIndexer.write().overwrite().save("models\\IndexToString");
-            System.out.println("IndexToString saved");
 
             Pipeline pipeline = new Pipeline()
                     .setStages(new PipelineStage[]{labelIndexer, featureIndexer, nb, labelConverter});
@@ -85,13 +81,11 @@ public class NaiveBaysianCrimeClassifier extends ClassificationModel {
             featureIndexer.write().overwrite().save("models\\Pipeline");
             return pipeline;
         } catch (IOException e) {
-            System.out.println("====================================");
-            System.out.println("CANNOT SAVE Pipeline ");
-            System.out.println("====================================");
+            System.out.println("====================================================================");
+            System.out.println("                      CANNOT SAVE Pipeline ");
+            System.out.println("====================================================================");
             e.printStackTrace();
         }
-        System.out.println("Pipeline saved");
-
         return null;
     }
 

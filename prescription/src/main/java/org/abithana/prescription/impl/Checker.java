@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by malakaganga on 1/23/17.
@@ -64,6 +65,35 @@ public class Checker implements Serializable{
 
         return polygonID;
     }
+    public Map<Long, Cluster> convertToCluster(Map<Integer,List<Long>> idMap) {
+
+        long i = 0;
+        Map<Long, Cluster> finishedClusters = new HashMap<Long, Cluster>();
+
+        for (List<Long> idList : idMap.values()) {
+            long clusterId = i;
+            Cluster cluster = new Cluster();
+            cluster.setClusterId(clusterId);
+            i++;
+            for (Long cenId : idList) {
+                cluster.setCensusIds(cenId);
+            }
+            finishedClusters.put(clusterId, cluster);
+
+        }
+
+
+        for (Cluster cl : finishedClusters.values()) {
+            for (long id : cl.getCensusIds()) {
+                cl.getCencusTracts().add(censusMap.get(id));
+            }
+        }
+
+
+        return finishedClusters;
+
+
+    }
     private double breakLong(double latUp, double longUp, double latDown, double longDown, double pointLat) {
         double breakLong = longUp - ((latUp - pointLat)*(longUp - longDown))/(latUp - latDown);
         return breakLong;
@@ -83,7 +113,7 @@ public class Checker implements Serializable{
             ArrayList<Double> latitudes = new ArrayList<Double>();
             ArrayList<Double> longitudes = new ArrayList<Double>();
 
-            // to keep id of cencus tract
+            // to keep id of cencustract
             long id = 0;
 
             //New census tract object

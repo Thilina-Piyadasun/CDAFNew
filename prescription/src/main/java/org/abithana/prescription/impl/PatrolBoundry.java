@@ -215,9 +215,9 @@ public class PatrolBoundry implements Serializable {
         }
     }
 
-    public Map<Integer,List> getBoundryTractids()
+    public Map<Integer,List<Long>> getBoundryTractids()
     {
-        Map<Integer,List> allset=new HashMap<>();
+        Map<Integer,List<Long>> allset=new HashMap<>();
         try{
             int i=0;
             for(LeaderBean leaderBean:leaderList){

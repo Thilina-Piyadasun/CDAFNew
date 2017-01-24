@@ -25,7 +25,7 @@ public class MultilayerPerceptronCrimeClassifier extends ClassificationModel {
     long seed;
     int maxIterations;
 
-    public MultilayerPerceptronCrimeClassifier(String[] feature_columns, String label,int[] layers,int blockSize,long seed,int maxIterations) {
+    public MultilayerPerceptronCrimeClassifier(String[] feature_columns, String label, int[] layers, int blockSize, long seed) {
         this.testFeature_columns = feature_columns;
         this.feature_columns=feature_columns;
         this.label = label;

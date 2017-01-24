@@ -92,22 +92,19 @@ public class Visualizer_Prediction {
         return preProcesedDataStore.showColumns(prepTableName);
     }
 
-    public void predict(){
+    /*
+    * predict for a given file using previously trained model
+    * */
+    public boolean predict(String testFIlePath){
 
-        String[] featureCol = {"dayOfWeek", "pdDistrict","time","year","month","population"};
-        //String[] featureCol = {"dayOfWeek", "pdDistrict","time","year"};
-        String label = "category";
-        int[] layers = new int[]{featureCol.length,500,39};
-       // MultilayerPerceptronCrimeClassifier rf=new MultilayerPerceptronCrimeClassifier(featureCol,label,layers,1000,1111,10);
-       NaiveBaysianCrimeClassifier rf=new NaiveBaysianCrimeClassifier(featureCol,label);
-        //RandomForestCrimeClassifier rf=new RandomForestCrimeClassifier(featureCol,label,20,1000);
         try{
+            //"D:\\FYP\\test.csv"
             Config instance=Config.getInstance();
             DataFrame df=instance.getSqlContext().read()
                     .format("com.databricks.spark.csv")
                     .option("header","true")
                     .option("inferSchema","true")
-                    .load("D:\\FYP\\test.csv");
+                    .load(testFIlePath);
 
 
             DataFrame f2=preprocessorFacade.handelMissingValues(df);
@@ -122,19 +119,146 @@ public class Visualizer_Prediction {
             }
             f2.registerTempTable("test");
             f2=preprocessorFacade.integratePopulationData(populationDataStore.getTableName(),"test");
-            rf.train_pipelineModel(preProcesedDataStore.getDataFrame(), 0.8);
-           // rf.train_crossValidatorModel(preProcesedDataStore.getDataFrame(), 0.8,10);
 
-            rf.predict(f2);
-            List<Evaluation> list=rf.getEvaluationResult();
-            for(Evaluation e:list){
-                System.out.println(e.getCategory() +" precision -"+ e.getPrecision()+ " recall - "+e.getRecall()+" fmeasure-"+e.getFmeasure());
-            }
+            return classificationModel.predict(f2);
+
         }catch (Exception e){
             e.printStackTrace();
         }
+        System.out.println("===================PROBLEM OCCURED WHILE PREDICTING=====================");
+        return false;
     }
 
+    /*
+    * NB pipeline model
+    * */
+    public List<Evaluation> train_NBpipeline(String[] featureCol,String label){
+        try{
+            // String[] featureCol = {"dayOfWeek", "pdDistrict","time","year","month","population"};
+            // String label = "category";
+
+            classificationModel=new NaiveBaysianCrimeClassifier(featureCol,label);
+            classificationModel.train_pipelineModel(preProcesedDataStore.getDataFrame(), 0.8);
+            List<Evaluation> list=classificationModel.getEvaluationResult();
+            printEval(list); //print in console
+            return list;
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        System.out.println("===================PROBLEM OCCURED WHILE TRAINING NAIVE BAYES MODEL=====================");
+        return  null;
+    }
+
+    /*
+   * NB Crossvalidation model
+   * */
+    public List<Evaluation> train_NBCrossValidation(String[] featureCol,String label,int folds){
+        try{
+            //String[] featureCol = {"dayOfWeek", "pdDistrict","time","year","month","population"};
+            //String label = "category";
+
+            classificationModel=new NaiveBaysianCrimeClassifier(featureCol,label);
+            classificationModel.train_crossValidatorModel(preProcesedDataStore.getDataFrame(), 0.8,folds);
+            List<Evaluation> list=classificationModel.getEvaluationResult();
+
+            printEval(list); //print in console
+            return list;
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        System.out.println("===================PROBLEM OCCURED WHILE TRAINING NAIVE BAYES MODEL=====================");
+        return  null;
+    }
+
+    /*
+  * RF pipeline model
+  * */
+    public List<Evaluation> train_RFpipeline(String[] featureCol,String label,int trees,int seed){
+        try{
+            // String[] featureCol = {"dayOfWeek", "pdDistrict","time","year","month","population"};
+            // String label = "category";
+
+            classificationModel=new RandomForestCrimeClassifier(featureCol,label,trees,seed);
+            classificationModel.train_pipelineModel(preProcesedDataStore.getDataFrame(), 0.8);
+            List<Evaluation> list=classificationModel.getEvaluationResult();
+
+            printEval(list); //print in console
+            return list;
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        System.out.println("===================PROBLEM OCCURED WHILE TRAINING RF pipeline MODEL=====================");
+        return  null;
+    }
+
+
+    /*
+   * RF Crossvalidation model
+   * */
+    public List<Evaluation> train_RFCrossValidation(String[] featureCol,String label,int trees,int seed,int folds){
+        try{
+            //String[] featureCol = {"dayOfWeek", "pdDistrict","time","year","month","population"};
+            //String label = "category";
+
+            classificationModel=new RandomForestCrimeClassifier(featureCol,label,trees,seed);
+            classificationModel.train_crossValidatorModel(preProcesedDataStore.getDataFrame(), 0.8,folds);
+            List<Evaluation> list=classificationModel.getEvaluationResult();
+
+            printEval(list); //for printing
+            return list;
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        System.out.println("===================PROBLEM OCCURED WHILE TRAINING RF Crossvalidation MODEL=====================");
+        return  null;
+    }
+
+    /*
+* MLP pipeline model
+* */
+    public List<Evaluation> train_MLPpipeline(String[] featureCol,String label,int[] layers,int blockSize,long seed){
+        try{
+            // String[] featureCol = {"dayOfWeek", "pdDistrict","time","year","month","population"};
+            // String label = "category";
+
+            classificationModel=new MultilayerPerceptronCrimeClassifier(featureCol,label,layers,blockSize,seed);
+            classificationModel.train_pipelineModel(preProcesedDataStore.getDataFrame(), 0.8);
+            List<Evaluation> list=classificationModel.getEvaluationResult();
+            printEval(list); //print in console
+            return list;
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        System.out.println("===================PROBLEM OCCURED WHILE TRAINING MLPpipeline MODEL=====================");
+        return  null;
+    }
+
+
+    /*
+   * MLP Crossvalidation model
+   * */
+    public List<Evaluation> train_MLPCrossValidation(String[] featureCol,String label,int[] layers,int blockSize,long seed,int folds){
+        try{
+            //String[] featureCol = {"dayOfWeek", "pdDistrict","time","year","month","population"};
+            //String label = "category";
+
+            classificationModel=new MultilayerPerceptronCrimeClassifier(featureCol,label,layers,blockSize,seed);
+            classificationModel.train_crossValidatorModel(preProcesedDataStore.getDataFrame(), 0.8,folds);
+            List<Evaluation> list=classificationModel.getEvaluationResult();
+            printEval(list); //for printing
+            return list;
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        System.out.println("===================PROBLEM OCCURED WHILE TRAINING MLP Crossvalidation MODEL=====================");
+        return  null;
+    }
 
     /*Returns preprocess data table name*/
     public String getPreprocessTableName(){
@@ -164,5 +288,9 @@ public class Visualizer_Prediction {
         populationDataStore.setPopulationCol(populationCol);
     }
 
-
+    public void printEval(List<Evaluation> list){
+        for(Evaluation e:list){
+            System.out.println(e.getCategory() +" precision -"+ e.getPrecision()+ " recall - "+e.getRecall()+" fmeasure-"+e.getFmeasure());
+        }
+    }
 }

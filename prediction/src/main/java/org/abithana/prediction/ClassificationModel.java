@@ -53,6 +53,7 @@ public abstract class ClassificationModel implements Serializable{
     * Use only getPipeline set to getPipeline model and get accuracy
     * */
     public void train_crossValidatorModel(DataFrame train, double partition,int folds)throws Exception{
+
         modelType="crossvalidation";
 
         /*transform trian set to features*/
@@ -76,7 +77,7 @@ public abstract class ClassificationModel implements Serializable{
                         // "f1", "precision", "recall", "weightedPrecision", "weightedRecall"
                 .setMetricName("precision");
         try {
-            evaluator.write().overwrite().save("model\\evaluator");
+            evaluator.write().overwrite().save("./models/evaluator");
             System.out.println("evaluator");
         }catch (Exception e){
             System.out.println("====================================");
@@ -90,21 +91,10 @@ public abstract class ClassificationModel implements Serializable{
                 .setEstimatorParamMaps(paramGrid)
                 .setNumFolds(folds);
 
-       /* try {
-            cv.write().overwrite().save("model\\CrossValidatorModel");
-            System.out.println("CrossValidator");
-        }catch (Exception e){
-            System.out.println("====================================");
-            System.out.println("CANNOT SAVE CrossValidator");
-            System.out.println("====================================");
-            e.printStackTrace();
-        }*/
-
-
         CrossValidatorModel model = cv.fit(trainingData);
         PipelineModel pipelineModel= (PipelineModel) model.bestModel();
         try {
-            pipelineModel.write().overwrite().save("model\\CrossValidatorModel");
+            pipelineModel.write().overwrite().save("./models/bestPiplineModel");
             System.out.println("CrossValidator");
         }catch (Exception e){
             System.out.println("====================================");
@@ -117,7 +107,7 @@ public abstract class ClassificationModel implements Serializable{
         if(model!=null){
             modelType="crossvalidation";
             try {
-                model.write().overwrite().save("D:\\CrossValidatorModel");
+                model.write().overwrite().save("./models/CrossValidationModel");
             }catch (Exception e){
                 System.out.println("====================================");
                 System.out.println("CANNOT SAVE CrossValidatorModel");
@@ -164,7 +154,7 @@ public abstract class ClassificationModel implements Serializable{
         if(model!=null){
             modelType="pipeline";
             try{
-                model.write().overwrite().save("D:\\pipelineModel");
+                model.write().overwrite().save("./models/pipelineModel");
             }catch (Exception e){
                 System.out.println("====================================");
                 System.out.println("CANNOT SAVE Pipeline method");
@@ -182,15 +172,15 @@ public abstract class ClassificationModel implements Serializable{
         }
     }
 
-    public void predict(DataFrame test){
+    public boolean predict(DataFrame test){
         try{
             test.show(30);
             Model model;
             if(modelType=="crossvalidation") {
-                model = CrossValidatorModel.load("D:\\CrossValidatorModel");
+                model = CrossValidatorModel.load("./models/CrossValidationModel");
             }
             else{
-                model=PipelineModel.load("D:\\pipelineModel");
+                model=PipelineModel.load("./models/pipelineModel");
             }
             test=mlDataParser.preprocessTestData(test);
             DataFrame testData=getFeaturesFrame(test,mlDataParser.removeIndexWord(testFeature_columns));
@@ -209,13 +199,14 @@ public abstract class ClassificationModel implements Serializable{
                 if(savePrediction(predictions_W)){
                     instance.getSqlContext().dropTempTable("prediction");
                     instance.getSqlContext().dropTempTable("test");
+                    return true;
                 }
             }
         }
         catch (Exception e){
             e.printStackTrace();
         }
-
+        return false;
 
     }
 

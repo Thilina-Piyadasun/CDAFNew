@@ -3,9 +3,7 @@ package org.abithana.frontConnector;
 import org.abithana.ds.CrimeDataStore;
 import org.abithana.ds.PreprocessedCrimeDataStore;
 import org.abithana.preprocessor.facade.PreprocessorFacade;
-import org.abithana.prescription.impl.PatrolBoundry;
-import org.abithana.prescription.impl.PrescriptionData;
-import org.abithana.prescription.impl.TractCentroid;
+import org.abithana.prescription.impl.*;
 import org.apache.spark.sql.DataFrame;
 
 import java.util.Arrays;
@@ -23,19 +21,6 @@ public class Vizualizer_prescription {
     CrimeDataStore initaldataStore=CrimeDataStore.getInstance();
     PrescriptionData prescriptionData=new PrescriptionData();
     TractCentroid t=new TractCentroid();
-
-    public void readFile(String path,String tableName){
-
-        initaldataStore.getColumns(path);
-        initaldataStore.setDatesCol("Dates");
-        initaldataStore.setCategoryCol("Category");
-        initaldataStore.setDayOfWeekCol("DayOfWeek");
-        initaldataStore.setPdDistrictCol("PdDistrict");
-        initaldataStore.setResolution("Resolution");
-        initaldataStore.setLatitudeCol("Y");
-        initaldataStore.setLongitudeCol("X");
-        initaldataStore.saveTable(tableName).show(30);
-    }
 
     /*
     this method runs if there is no preprocessing done previously
@@ -56,7 +41,7 @@ public class Vizualizer_prescription {
         preprocessedCrimeDataStore.saveTable(f2, "preprocessedData");
     }
 
-    public Map<Integer,List> generatePatrolBeats(){
+    public Map<Long,Cluster> generatePatrolBeats(){
 
         if(preprocessedCrimeDataStore.getDataFrame()==null) {
             doPreprocessing();
@@ -73,11 +58,11 @@ public class Vizualizer_prescription {
        // prescriptionData.digitizeMap(tblname,prescriptionTblName);
 
         PatrolBoundry p=new PatrolBoundry();
-
+        Checker ch = new Checker();
         p.getLearders( t.getAllTractCentroids(prescriptionTblName),10);
         p.calcThreashold( t.getToalWork(),10);
         p.findPatrolBoundries();
-        return p.getBoundryTractids();
+        return ch.convertToCluster(p.getBoundryTractids());
     }
 
 
